@@ -160,7 +160,7 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
     <ul id="hintList"></ul>
   </div>
   <section class="panel" id="play">
-    <label class="q" for="q">質問を入力（例：アニメの主題歌ですか？／「深愛」ですか？）</label>
+    <label class="q" for="q">質問を入力（例：アニメの主題歌ですか？／「深愛」ですか？）※歌詞についての質問には答えられません</label>
     <form class="ask" id="askForm">
       <input id="q" type="text" maxlength="100" autocomplete="off" placeholder="はい・いいえで答えられる質問">
       <button class="primary" id="askBtn" type="submit">質問する</button>
@@ -218,7 +218,7 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
 
   <footer>
     <span>非公式のファンメイドゲームです。楽曲データとクレジットは公式サイトのディスコグラフィ、Wikipedia、歌ネットをもとに作成しています（2026年10月時点）。キャラクターソング、インスト曲、未音源化曲、グループ名義の曲は対象外です。</span>
-    <span>自由入力の質問はAI（Claude）が判定します。AIが「わからない」と答えた質問は回数に数えません。</span>
+    <span>自由入力の質問はAI（Claude）が楽曲データ（発売日・収録作品・タイアップ・作詞作曲・アルバム曲順など）をもとに判定します。歌詞や曲調など、データにないことは「わからない」になり、回数には数えません。</span>
   </footer>
 </div>
 <script>
