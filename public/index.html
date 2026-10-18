@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>奈々ネーター</title>
+<meta name="description" content="水樹奈々さんの楽曲から選ばれた1曲を、はい・いいえの質問15問以内で当てるファンメイドゲーム。">
+<!-- ▼ 公開URLが決まったら、下の2か所の https://nananator.pages.dev を書き換えてください -->
+<meta property="og:url" content="https://nananator.pages.dev/">
+<meta property="og:image" content="https://nananator.pages.dev/ogp.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="奈々ネーター">
+<meta property="og:description" content="水樹奈々さんの曲を15問以内で当てられる？ はい・いいえの質問で正解の1曲を探そう。">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b1428'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='%235fd3ef' font-family='sans-serif' font-weight='700'%3EN%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+
+/* Layout: one narrow column styled like a live setlist — questions are numbered M01–M15 */
+:root{
+  --bg:#eaf2f7; --surface:#ffffff; --surface-2:#f3f8fb; --ink:#10233a; --muted:#56708a;
+  --line:#cfdde8; --accent:#0e8fb3; --accent-ink:#ffffff; --gold:#b07a12; --gold-soft:#fbf1da;
+  --yes:#127a5a; --yes-soft:#dcf3ea; --no:#b23a52; --no-soft:#f8e1e6; --unk:#6a6f86; --unk-soft:#e9eaf1;
+  --display:"Dela Gothic One","Zen Kaku Gothic New","Hiragino Sans",sans-serif;
+  --body:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0b1428; --surface:#121e38; --surface-2:#18264a; --ink:#e6eefb; --muted:#93a6c6;
+  --line:#26375e; --accent:#5fd3ef; --accent-ink:#06202b; --gold:#f2c35b; --gold-soft:#2e2611;
+  --yes:#5fdcae; --yes-soft:#123a2f; --no:#ff8aa1; --no-soft:#3d1622; --unk:#b5bad0; --unk-soft:#262c45; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0b1428; --surface:#121e38; --surface-2:#18264a; --ink:#e6eefb; --muted:#93a6c6;
+  --line:#26375e; --accent:#5fd3ef; --accent-ink:#06202b; --gold:#f2c35b; --gold-soft:#2e2611;
+  --yes:#5fdcae; --yes-soft:#123a2f; --no:#ff8aa1; --no-soft:#3d1622; --unk:#b5bad0; --unk-soft:#262c45; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.65}
+.wrap{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 40px;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,9vw,52px);line-height:1.1;margin:0;letter-spacing:.02em;text-wrap:balance}
+h1 .wave{color:var(--accent)}
+.lead{margin:0;color:var(--muted)}
+.meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.count{font-family:var(--mono);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
+.count small{color:var(--muted);font-weight:500;font-size:13px}
+.ticks{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;flex:1;min-width:180px}
+.ticks i{height:8px;border-radius:2px;background:var(--line)}
+.ticks i.on{background:var(--accent)}
+.ticks i.last{background:var(--no)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+label.q{font-weight:700;font-size:13px;color:var(--muted)}
+.ask{display:flex;gap:8px;flex-wrap:wrap}
+#q{flex:1 1 240px;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink)}
+#q:focus{outline:none;border-color:var(--accent)}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1.5px solid transparent;padding:11px 16px;font-weight:700}
+button:focus-visible,summary:focus-visible,.chip:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:var(--accent);color:var(--accent-ink)}
+.ghost{background:transparent;color:var(--muted);border-color:var(--line)}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.status{font-size:13px;color:var(--muted);min-height:1.4em}
+.status.err{color:var(--no)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12.5px;font-weight:500;padding:6px 10px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink)}
+details{border-top:1px dashed var(--line);padding-top:10px}
+summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)}
+.songfilter{width:100%;margin:10px 0 8px;font:inherit;font-size:16px;padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink)}
+.songlist{max-height:260px;overflow:auto;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.songlist button{font-weight:500;font-size:12.5px;padding:5px 9px;border-radius:6px;background:transparent;border:1px solid var(--line);color:var(--ink)}
+.setlist h2,.result h2{font-family:var(--display);font-weight:400;font-size:18px;margin:0;letter-spacing:.04em}
+.sl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sl li{display:grid;grid-template-columns:44px 1fr auto;gap:10px;align-items:start;padding:10px 0;border-bottom:1px solid var(--line)}
+.sl li:last-child{border-bottom:0}
+.no{font-family:var(--mono);font-size:12px;color:var(--muted);padding-top:3px;font-variant-numeric:tabular-nums}
+.qt{min-width:0;overflow-wrap:anywhere}
+.qt small{display:block;color:var(--muted);font-size:12px}
+.badge{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.b-yes{background:var(--yes-soft);color:var(--yes)}
+.b-no{background:var(--no-soft);color:var(--no)}
+.b-unk{background:var(--unk-soft);color:var(--unk)}
+.b-hit{background:var(--gold-soft);color:var(--gold)}
+.empty{color:var(--muted);font-size:13px;margin:0}
+.result{border:2px solid var(--gold);background:var(--surface)}
+.result.lose{border-color:var(--line)}
+.verdict{font-family:var(--display);font-weight:400;font-size:clamp(30px,8vw,44px);line-height:1.15;margin:0;color:var(--gold)}
+.result.lose .verdict{color:var(--ink)}
+.songcard{background:var(--surface-2);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px}
+.songcard .t{font-family:var(--display);font-weight:400;font-size:22px;line-height:1.3;overflow-wrap:anywhere}
+.songcard dl{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;margin:6px 0 0;font-size:13px}
+.songcard dt{color:var(--muted)}
+.songcard dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.stat{font-size:15px}
+.stat b{font-family:var(--mono);font-size:22px}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.share{background:var(--ink);color:var(--bg)}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;background:var(--no-soft);color:var(--no);padding:10px 12px;border-radius:10px}
+.confirm button{padding:7px 12px;font-size:13px}
+footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+@keyframes pop{0%{transform:scale(.92);opacity:.4}100%{transform:scale(1);opacity:1}}
+.result:not([hidden]){animation:pop .35s ease-out}
+@media (prefers-reduced-motion:reduce){.result:not([hidden]){animation:none}}
+
+a.share{display:inline-flex;align-items:center;text-decoration:none;border-radius:10px;padding:11px 16px;font-weight:700}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Nana Mizuki Song Guessing Game</span>
+    <h1>奈々<span class="wave">ネーター</span></h1>
+    <p class="lead">水樹奈々さんの楽曲から1曲が選ばれました。はい／いいえで答えられる質問をして、15問以内に曲名を当ててください。</p>
+  </header>
+
+  <div class="meter" aria-live="polite">
+    <span class="count" id="count">M00 <small>/ M15</small></span>
+    <div class="ticks" id="ticks" aria-hidden="true"></div>
+  </div>
+
+  <section class="panel" id="play">
+    <label class="q" for="q">質問を入力（例：アニメの主題歌ですか？／「深愛」ですか？）</label>
+    <form class="ask" id="askForm">
+      <input id="q" type="text" maxlength="100" autocomplete="off" placeholder="はい・いいえで答えられる質問">
+      <button class="primary" id="askBtn" type="submit">質問する</button>
+    </form>
+    <div class="status" id="status" role="status"></div>
+    <div class="row">
+      <span class="status" id="mode">自由入力の質問はAIが判定します</span>
+      <button class="ghost" id="giveBtn" type="button">GiveUp</button>
+    </div>
+    <div class="confirm" id="confirm" hidden>
+      本当にGiveUpしますか？答えが表示されます。
+      <button class="primary" id="giveYes" type="button">GiveUpする</button>
+      <button class="ghost" id="giveNo" type="button">続ける</button>
+    </div>
+    <div>
+      <div class="q" style="font-size:12px;color:var(--muted);margin-bottom:6px">質問例（タップで入力）</div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <details>
+      <summary>曲名リストから回答する（<span id="songN"></span>曲）</summary>
+      <input class="songfilter" id="filter" type="search" placeholder="曲名で絞り込み">
+      <div class="songlist" id="songlist"></div>
+    </details>
+  </section>
+
+  <section class="panel result" id="result" hidden aria-live="polite">
+    <p class="verdict" id="verdict"></p>
+    <div class="stat" id="stat"></div>
+    <div class="songcard">
+      <span class="eyebrow">正解の曲</span>
+      <span class="t" id="ansTitle"></span>
+      <dl id="ansMeta"></dl>
+    </div>
+    <div class="setlist">
+      <h2>直近の質問（最大7件）</h2>
+      <ul class="sl" id="recent"></ul>
+    </div>
+    <div class="btns">
+      <button class="primary" id="againBtn" type="button">もう一度遊ぶ</button>
+      <a class="share" id="shareLink" target="_blank" rel="noopener" href="#">Xでシェア</a>
+    </div>
+  </section>
+
+  <section class="panel setlist" id="histPanel">
+    <h2>SETLIST</h2>
+    <ul class="sl" id="hist"></ul>
+    <p class="empty" id="histEmpty">まだ質問していません。最初の質問をどうぞ。</p>
+  </section>
+
+  <footer>
+    <span>非公式のファンメイドゲームです。楽曲データとクレジットは公式サイトのディスコグラフィ、Wikipedia、歌ネットをもとに作成しています（2026年10月時点）。キャラクターソング、インスト曲、未音源化曲、グループ名義の曲は対象外です。</span>
+    <span>自由入力の質問はAI（Claude）が判定します。AIが「わからない」と答えた質問は回数に数えません。</span>
+  </footer>
+</div>
+<script>
+let TITLES = [], PRESET_Q = [];
+// ---------- 奈々ネーター（公開版クライアント） ----------
+// 正解の曲はサーバーが暗号化トークンで保持し、ブラウザには答えのデータを置かない。
+const LIMIT = 15;
+const $ = id => document.getElementById(id);
+let state = null, busy = false;
+
+function save(){ try{ localStorage.setItem("nananator_v2", JSON.stringify(state)); }catch(e){} }
+function load(){ try{ const s=JSON.parse(localStorage.getItem("nananator_v2")); if(s&&s.token) return s; }catch(e){} return null; }
+async function api(path, body){
+  const res = await fetch(path, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body||{})});
+  const data = await res.json().catch(()=>({error:"upstream"}));
+  if(!res.ok) throw data;
+  return data;
+}
+async function newGame(){
+  setStatus("準備中…");
+  try{ const {token} = await api("/api/new"); state = {token, hist:[], done:null, song:null}; save(); render(); $("q").value=""; setStatus(""); }
+  catch(e){ setStatus("ゲームを開始できませんでした。少し待ってから再読み込みしてください。", true); }
+}
+const isCounted = h => h.kind!=="invalid" && h.kind!=="unknown";
+const counted = () => state.hist.filter(isCounted).length;
+function numbered(){ let n=0; return state.hist.map(h=>({h, n: isCounted(h) ? ++n : null})); }
+
+function pad(n){ return "M"+String(n).padStart(2,"0"); }
+function badge(a){
+  const m = {"はい":"b-yes","いいえ":"b-no","わからない":"b-unk","正解！":"b-hit"};
+  const b = document.createElement("span"); b.className = "badge "+(m[a]||"b-unk"); b.textContent = a; return b;
+}
+function rowEl(h, n){
+  const li = document.createElement("li");
+  const no = document.createElement("span"); no.className="no"; no.textContent = n ? pad(n) : "";
+  const qt = document.createElement("span"); qt.className="qt"; qt.textContent = h.q;
+  if(h.comment){ const sm=document.createElement("small"); sm.textContent=h.comment; qt.append(sm); }
+  li.append(no, qt, badge(h.a)); return li;
+}
+function render(){
+  if(!state) return;
+  const n = counted();
+  $("count").innerHTML = `${pad(n)} <small>/ M${LIMIT}</small>`;
+  const ticks = $("ticks"); ticks.innerHTML="";
+  for(let i=0;i<LIMIT;i++){ const t=document.createElement("i"); if(i<n) t.className = (i===LIMIT-1?"on last":"on"); ticks.append(t); }
+  const list = $("hist"); list.innerHTML="";
+  const items = numbered();
+  items.slice().reverse().forEach(x=>list.append(rowEl(x.h, x.n)));
+  $("histEmpty").hidden = items.length>0;
+  const over = !!state.done && !!state.song;
+  $("play").hidden = over;
+  $("result").hidden = !over;
+  if(over) renderResult();
+}
+function renderResult(){
+  const s = state.song, n = counted(), win = state.done==="win";
+  $("result").classList.toggle("lose", !win);
+  $("verdict").textContent = win ? "正解です！" : (state.done==="limit" ? "15問終了。GIVE UP" : "GIVE UP");
+  $("stat").innerHTML = win ? `<b>${n}</b> 問目で正解しました` : `<b>${n}</b> 問の質問でした`;
+  $("ansTitle").textContent = s.title;
+  const meta = $("ansMeta"); meta.innerHTML="";
+  s.rows.forEach(([k,v])=>{ const dt=document.createElement("dt"); dt.textContent=k; const dd=document.createElement("dd"); dd.textContent=v; meta.append(dt,dd); });
+  const items = numbered();
+  const rec = $("recent"); rec.innerHTML="";
+  items.slice(-7).reverse().forEach(x=>rec.append(rowEl(x.h, x.n)));
+  if(!items.length){ const li=document.createElement("li"); li.innerHTML='<span></span><span class="qt">質問はありませんでした</span><span></span>'; rec.append(li); }
+  const text = win ? `#奈々ネーター で水樹奈々さんの曲を ${n}問で当てました！` : `#奈々ネーター に挑戦。${n}問で当てられずGiveUp…`;
+  $("shareLink").href = "https://x.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(location.origin+"/");
+}
+function setStatus(t, err){ const el=$("status"); el.textContent=t; el.classList.toggle("err", !!err); }
+
+async function reveal(kind){
+  try{ const {song} = await api("/api/reveal", {token:state.token}); state.song = song; state.done = kind; save(); render(); }
+  catch(e){ setStatus("答えを取得できませんでした。もう一度押してください。", true); }
+}
+function record(q, a, kind, comment){
+  state.hist.push({q, a, kind, comment:comment||""});
+  save(); render();
+  if(counted()>=LIMIT) reveal("limit");
+}
+async function ask(raw){
+  const q = raw.trim();
+  if(!q || busy || !state || state.done) return;
+  busy = true; $("askBtn").disabled = true; setStatus("判定中…");
+  try{
+    const r = await api("/api/ask", {token:state.token, q});
+    $("q").value = "";
+    if(r.kind==="invalid"){ $("q").value = q; setStatus("はい／いいえで答えられる質問にしてください（回数には数えません）。", true); }
+    else if(r.kind==="hit"){ state.hist.push({q, a:"正解！", kind:"hit"}); state.song = r.song; state.done = "win"; save(); render(); setStatus(""); }
+    else if(r.kind==="unknown"){ record(q, "わからない", "unknown", r.comment); setStatus("「わからない」は質問数に数えません。"); }
+    else { record(q, r.answer, r.kind, r.comment); setStatus(r.kind==="guess" ? "違う曲です。" : ""); }
+  }catch(e){
+    const msg = {rate_limited:"アクセスが集中しています。少し待ってからもう一度送ってください。", ai_unavailable:"今は自由入力の判定が使えません。質問例か曲名で遊べます。", bad_token:"ゲームの情報が壊れています。「GiveUp」か再読み込みで新しいゲームを始めてください。"}[e&&e.error];
+    setStatus(msg || "判定できませんでした。もう一度送ってください（回数には数えません）。", true);
+  }finally{ busy=false; $("askBtn").disabled=false; }
+}
+
+$("askForm").addEventListener("submit", e=>{ e.preventDefault(); ask($("q").value); });
+$("giveBtn").onclick = ()=>{ $("confirm").hidden=false; };
+$("giveNo").onclick = ()=>{ $("confirm").hidden=true; };
+$("giveYes").onclick = ()=>{ $("confirm").hidden=true; reveal("lose"); };
+$("againBtn").onclick = ()=>{ newGame(); window.scrollTo({top:0}); };
+function buildChips(){
+const chips = $("chips"); chips.innerHTML="";
+PRESET_Q.forEach(q=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=q; b.onclick=()=>{ $("q").value=q; $("q").focus(); }; chips.append(b); });
+}
+function buildSongs(){ $("songN").textContent = TITLES.length; renderSongs(); }
+const normT = s => String(s).normalize("NFKC").toLowerCase().replace(/[\s・☆★!！?？]/g,"");
+function renderSongs(){
+  const f = normT($("filter").value), box=$("songlist"); box.innerHTML="";
+  TITLES.slice().sort((a,b)=>a.localeCompare(b,"ja")).forEach(t=>{
+    if(f && !normT(t).includes(f)) return;
+    const b=document.createElement("button"); b.type="button"; b.textContent=t;
+    b.onclick=()=>{ $("q").value=`「${t}」ですか？`; $("q").focus(); window.scrollTo({top:0,behavior:"smooth"}); };
+    box.append(b);
+  });
+}
+$("filter").addEventListener("input", renderSongs);
+fetch("/api/titles").then(r=>r.json()).then(d=>{ TITLES=d.titles||[]; PRESET_Q=d.presets||[]; buildChips(); buildSongs(); }).catch(()=>{});
+state = load();
+if(state && state.done && !state.song) reveal(state.done);
+else if(state) render();
+else newGame();
+</script>
+</body>
+</html>
