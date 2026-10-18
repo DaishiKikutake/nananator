@@ -155,6 +155,10 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
     <div class="ticks" id="ticks" aria-hidden="true"></div>
   </div>
 
+  <div class="hints" id="hints" hidden>
+    <div class="hints-head"><span>HINT</span><small id="hintNext"></small></div>
+    <ul id="hintList"></ul>
+  </div>
   <section class="panel" id="play">
     <label class="q" for="q">質問を入力（例：アニメの主題歌ですか？／「深愛」ですか？）</label>
     <form class="ask" id="askForm">
@@ -162,10 +166,6 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
       <button class="primary" id="askBtn" type="submit">質問する</button>
     </form>
     <div class="status" id="status" role="status"></div>
-    <div class="hints" id="hints" hidden>
-      <div class="hints-head"><span>HINT</span><small id="hintNext"></small></div>
-      <ul id="hintList"></ul>
-    </div>
     <div class="row">
       <span class="status" id="mode">自由入力の質問はAIが判定します</span>
       <button class="ghost" id="giveBtn" type="button">GiveUp</button>
@@ -279,7 +279,8 @@ function renderMode(){
 }
 function renderHints(){
   const box = $("hints"); const std = state.mode==="standard";
-  box.hidden = !std; if(!std) return;
+  const over = !!state.done && !!state.song;
+  box.hidden = !std || over; if(box.hidden) return;
   const list = $("hintList"); list.innerHTML="";
   state.hints.forEach(h=>{ const li=document.createElement("li"); const b=document.createElement("b"); b.textContent=h.label; li.append(b, document.createTextNode(h.text)); list.append(li); });
   const next = HINT_AT.find(a=>a>counted());
