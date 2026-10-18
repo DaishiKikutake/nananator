@@ -108,10 +108,13 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
 
 a.share{display:inline-flex;align-items:center;text-decoration:none;border-radius:10px;padding:11px 16px;font-weight:700}
 
+.visitor{margin:0;align-self:flex-start;font-size:13px;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 14px}
+.visitor b{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
 <div class="wrap">
+  <p class="visitor" id="visitor" hidden></p>
   <header>
     <span class="eyebrow">Nana Mizuki Song Guessing Game</span>
     <h1>奈々<span class="wave">ネーター</span></h1>
@@ -243,7 +246,9 @@ function renderResult(){
   const rec = $("recent"); rec.innerHTML="";
   items.slice(-7).reverse().forEach(x=>rec.append(rowEl(x.h, x.n)));
   if(!items.length){ const li=document.createElement("li"); li.innerHTML='<span></span><span class="qt">質問はありませんでした</span><span></span>'; rec.append(li); }
-  const text = win ? `#奈々ネーター で水樹奈々さんの曲を ${n}問で当てました！` : `#奈々ネーター に挑戦。${n}問で当てられずGiveUp…`;
+  const text = win
+    ? `#奈々ネーター で水樹奈々さんの【${s.title}】を${n}問で当てました！\nあなたは何問で当てられる？`
+    : `#奈々ネーター に挑戦したけど、答えの【${s.title}】にたどり着けず…（${n}問でGiveUp）\nあなたは当てられる？`;
   $("shareLink").href = "https://x.com/intent/tweet?text="+encodeURIComponent(text)+"&url="+encodeURIComponent(location.origin+"/");
 }
 function setStatus(t, err){ const el=$("status"); el.textContent=t; el.classList.toggle("err", !!err); }
@@ -295,6 +300,12 @@ function renderSongs(){
   });
 }
 $("filter").addEventListener("input", renderSongs);
+function showVisitor(n){ const el=$("visitor"); el.innerHTML=`あなたは <b>${Number(n).toLocaleString("ja-JP")}</b> 人めの挑戦者です！`; el.hidden=false; }
+(async()=>{
+  let n=null; try{ n=sessionStorage.getItem("nananator_visit"); }catch(e){}
+  if(!n){ try{ const r=await api("/api/visit"); n=r.n; try{ sessionStorage.setItem("nananator_visit", n); }catch(e){} }catch(e){ return; } }
+  showVisitor(n);
+})();
 fetch("/api/titles").then(r=>r.json()).then(d=>{ TITLES=d.titles||[]; PRESET_Q=d.presets||[]; buildChips(); buildSongs(); }).catch(()=>{});
 state = load();
 if(state && state.done && !state.song) reveal(state.done);

@@ -7,3 +7,12 @@ compatibility_date = "2026-01-01"
 [assets]
 directory = "./public"
 binding = "ASSETS"
+
+# 挑戦者数のカウンター
+[[durable_objects.bindings]]
+name = "COUNTER"
+class_name = "VisitCounter"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["VisitCounter"]
