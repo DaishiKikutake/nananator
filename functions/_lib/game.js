@@ -421,18 +421,24 @@ async function keyFrom(secret){
 }
 const b64u = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 const unb64u = s => Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")), c=>c.charCodeAt(0));
-export async function makeToken(id, secret){
+export async function makeToken(id, secret, mode="master"){
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, await keyFrom(secret), enc.encode(JSON.stringify({id, t:Date.now()})));
+  const ct = await crypto.subtle.encrypt({name:"AES-GCM", iv}, await keyFrom(secret), enc.encode(JSON.stringify({id, mode, t:Date.now()})));
   return b64u(iv) + "." + b64u(ct);
 }
-export async function readToken(token, secret){
+// トークンから正解の曲とモードを取り出す
+export async function readGame(token, secret){
   try{
     const [iv, ct] = String(token).split(".");
     const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:unb64u(iv)}, await keyFrom(secret), unb64u(ct));
-    const {id} = JSON.parse(dec.decode(pt));
-    return SONGS[id] || null;
+    const {id, mode} = JSON.parse(dec.decode(pt));
+    const song = SONGS[id];
+    return song ? {song, mode: mode==="standard" ? "standard" : "master"} : null;
   }catch(e){ return null; }
+}
+export async function readToken(token, secret){
+  const g = await readGame(token, secret);
+  return g ? g.song : null;
 }
 
 export const json = (obj, status=200) => new Response(JSON.stringify(obj), {status, headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
@@ -446,4 +452,39 @@ export function rateLimited(request, max=20){
   arr.push(now); hits.set(ip, arr);
   if(hits.size > 5000) hits.clear();
   return arr.length > max;
+}
+
+// ---- モード ----
+// マスター：全曲から出題。スタンダード：ベスト盤『THE MUSEUM』シリーズ収録曲から出題、ヒントと最後の4択あり。
+export const STANDARD_POOL = SONGS.filter(s=>s.tracks.some(t=>isBest(t.album)));
+export const poolFor = mode => mode==="standard" ? STANDARD_POOL : SONGS;
+
+// スタンダードモードの自動ヒント（数えた質問数が at に達したら表示）
+export const HINT_AT = [5, 10, 12, 14];
+export function hintsFor(s, n){
+  const decade = s.year < 2010 ? "2000年代" : s.year < 2020 ? "2010年代" : "2020年代";
+  const tie = hasAnime(s) ? "アニメ（劇場版・OVAを含む）のタイアップ曲です"
+    : /ゲーム/.test(s.tie) ? "ゲームのタイアップ曲です"
+    : s.tie ? "アニメ・ゲーム以外のタイアップ（番組・CMなど）があります"
+    : "タイアップはありません";
+  const coName = s.co.replace(/\s*[（(][^）)]*[）)]/g,"").trim();
+  const co = coName ? `作曲は${coName}さんです` : "作曲者の情報はありません";
+  const chars = [...s.title];
+  const head = `曲名は「${chars[0]}」で始まります（${chars.length}文字）`;
+  const all = [
+    {at:HINT_AT[0], label:"年代", text:`${decade}に発表された曲です`},
+    {at:HINT_AT[1], label:"タイアップ", text:tie},
+    {at:HINT_AT[2], label:"作曲", text:co},
+    {at:HINT_AT[3], label:"曲名", text:head},
+  ];
+  return all.filter(h=>n>=h.at);
+}
+
+// 最後の4択：正解＋同じ出題範囲からランダムに3曲
+export function choicesFor(s, mode){
+  const pool = poolFor(mode).filter(x=>x.id!==s.id);
+  const picks = [s];
+  while(picks.length<4 && pool.length){ picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]); }
+  for(let i=picks.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [picks[i],picks[j]]=[picks[j],picks[i]]; }
+  return picks.map(x=>x.title);
 }

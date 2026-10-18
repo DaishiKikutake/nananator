@@ -4,6 +4,9 @@ import * as apiNew from "../functions/api/new.js";
 import * as apiAsk from "../functions/api/ask.js";
 import * as apiReveal from "../functions/api/reveal.js";
 import * as apiTitles from "../functions/api/titles.js";
+import * as apiHint from "../functions/api/hint.js";
+import * as apiChoices from "../functions/api/choices.js";
+import * as apiFinal from "../functions/api/final.js";
 import { json, rateLimited } from "../functions/_lib/game.js";
 
 // 挑戦者数のカウンター（Durable Object。全体で1つだけ作り、ここで数を1ずつ増やす）
@@ -26,6 +29,9 @@ const routes = {
   "POST /api/ask": apiAsk.onRequestPost,
   "POST /api/reveal": apiReveal.onRequestPost,
   "POST /api/visit": visit,
+  "POST /api/hint": apiHint.onRequestPost,
+  "POST /api/choices": apiChoices.onRequestPost,
+  "POST /api/final": apiFinal.onRequestPost,
   "GET /api/titles": apiTitles.onRequestGet,
 };
 
