@@ -1,4 +1,4 @@
-import { MODEL, readToken, exactGuess, titleMatches, presetAnswer, aiPrompt, songCard, json, rateLimited } from "../_lib/game.js";
+import { MODEL, parseJudge, readToken, exactGuess, titleMatches, presetAnswer, aiPrompt, songCard, json, rateLimited } from "../_lib/game.js";
 
 // 質問を判定する。曲名だけの回答と質問例はサーバー内で判定し、それ以外はClaudeに問い合わせる
 export async function onRequestPost({ request, env }){
@@ -18,21 +18,29 @@ export async function onRequestPost({ request, env }){
   const pa = presetAnswer(q, song);
   if(pa) return json({kind:"question", answer:pa});
 
-  // 3) 自由入力（Claude）
+  // 3) 自由入力（Claude）。読み取れない返答だったときは1回だけやり直す
   if(!env.ANTHROPIC_API_KEY) return json({error:"ai_unavailable"}, 503);
-  let r;
-  try{
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method:"POST",
-      headers:{ "x-api-key":env.ANTHROPIC_API_KEY, "anthropic-version":"2023-06-01", "content-type":"application/json" },
-      body: JSON.stringify({ model: env.MODEL || MODEL, max_tokens: 200, messages:[{role:"user", content: aiPrompt(q, song)}] })
-    });
-    if(!res.ok) return json({error: res.status===429 ? "rate_limited" : "upstream"}, 502);
-    const data = await res.json();
-    const text = (data.content||[]).map(c=>c.text||"").join("");
-    const m = text.match(/\{[\s\S]*\}/);
-    r = JSON.parse(m ? m[0] : text);
-  }catch(e){ return json({error:"upstream"}, 502); }
+  let r = null, detail = "";
+  for(let attempt=0; attempt<2 && !r; attempt++){
+    try{
+      const res = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST",
+        headers:{ "x-api-key":env.ANTHROPIC_API_KEY, "anthropic-version":"2023-06-01", "content-type":"application/json" },
+        body: JSON.stringify({ model: env.MODEL || MODEL, max_tokens: 400, messages:[{role:"user", content: aiPrompt(q, song)}] })
+      });
+      if(!res.ok){
+        detail = `status ${res.status}`;
+        if(res.status===429) return json({error:"rate_limited", detail}, 502);
+        if(res.status>=400 && res.status<500) break;   // 設定ミスなどはやり直しても同じ
+        continue;
+      }
+      const data = await res.json();
+      const text = (data.content||[]).map(c=>c.text||"").join("");
+      r = parseJudge(text);
+      if(!r) detail = `unparsable (${data.stop_reason||"?"}): ${text.slice(0,80)}`;
+    }catch(e){ detail = String(e).slice(0,80); }
+  }
+  if(!r) return json({error:"upstream", detail}, 502);
 
   const type = String(r.type||"");
   const answer = ["はい","いいえ","わからない"].includes(r.answer) ? r.answer : "わからない";
