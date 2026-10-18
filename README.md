@@ -1,7 +1,7 @@
 # 奈々ネーター 公開手順
 
 水樹奈々さんの楽曲当てゲームを、誰でもXのリンクから遊べるように公開するための手順です。
-Cloudflare Pages（無料プラン）で公開し、自由入力の判定だけをClaude API（有料・従量課金）で行います。
+Cloudflare Workers（無料プラン）で公開し、自由入力の判定だけをClaude API（有料・従量課金）で行います。
 
 ## フォルダの中身
 
@@ -14,6 +14,7 @@ Cloudflare Pages（無料プラン）で公開し、自由入力の判定だけ�
 | `functions/api/reveal.js` | GiveUp・15問到達時に答えを返す |
 | `functions/api/titles.js` | 曲名リストと質問例を返す |
 | `functions/_lib/game.js` | 楽曲データ（312曲）と判定ロジック |
+| `src/worker.js` | Cloudflare Workersの入口（画面とAPIの振り分け） |
 | `wrangler.toml` | Cloudflareの設定 |
 
 正解の曲はサーバー側だけが知っていて、ブラウザには暗号化した番号しか渡しません。開発者ツールを開いても答えは見えません。
@@ -28,24 +29,26 @@ Cloudflare Pages（無料プラン）で公開し、自由入力の判定だけ�
 ## 2. GitHubにアップロードする
 
 1. https://github.com でアカウントを作り、「New repository」で `nananator` という名前のリポジトリを作成します（Privateでも構いません）。
-2. 「uploading an existing file」から、このフォルダの中身（`public`、`functions`、`wrangler.toml`、`README.md`）をドラッグ＆ドロップしてコミットします。
+2. 「uploading an existing file」から、このフォルダの中身（`public`、`functions`、`src`、`wrangler.toml`、`README.md`）をドラッグ＆ドロップしてコミットします。
 
-## 3. Cloudflare Pagesで公開する
+## 3. Cloudflareで公開する（Workers）
 
-1. https://dash.cloudflare.com でアカウントを作成します（無料）。
-2. 「Workers & Pages」→「作成」→「Pages」→「Gitに接続」で、手順2のリポジトリを選びます。
-3. ビルド設定は次のとおりにします。
-   - フレームワーク プリセット：なし
+1. Cloudflareの画面で「Workers & Pages」→「作成（Create application）」を押します。
+2. 「リポジトリをインポート（Import a repository）」を選び、GitHubとつないで `nananator` リポジトリを選びます。
+   - 「テンプレートから開始」や「リポジトリをクローン」は選ばないでください。新しいリポジトリが勝手に作られてしまいます。
+3. 設定画面では次のとおりにします。
+   - プロジェクト名（Worker名）：`nananator`（`wrangler.toml` の `name` と同じにします）
    - ビルドコマンド：空欄
-   - ビルド出力ディレクトリ：`public`
-4. 「環境変数」に次の2つを**シークレット（暗号化）**として追加します。
+   - デプロイコマンド：`npx wrangler deploy`（初期値のまま）
+4. 「デプロイ（Deploy）」を押します。1〜2分で `https://nananator.（あなたのサブドメイン）.workers.dev` のようなURLで公開されます。
+5. Workerの画面で「設定（Settings）」→「変数とシークレット（Variables and Secrets）」→「追加（Add）」から、種類「シークレット（Secret）」で次の2つを登録します。
    - `ANTHROPIC_API_KEY`：手順1で控えたキー
-   - `GAME_SECRET`：答えの暗号化に使う合言葉。30文字以上の適当な英数字（例：パスワード生成ツールで作ったもの）
-5. 「保存してデプロイ」を押します。1〜2分で `https://nananator.pages.dev` のようなURLで公開されます。
+   - `GAME_SECRET`：答えの暗号化に使う合言葉。30文字以上の適当な英数字
+6. シークレットは保存した時点で反映されます。
 
-### 公開URLが `nananator.pages.dev` 以外になった場合
+### 公開URLを決めたら
 
-`public/index.html` の上のほうにある次の2行の `https://nananator.pages.dev` を、実際のURLに書き換えてGitHubに再アップロードしてください。Xのカード画像が正しく表示されるようになります。
+`public/index.html` の上のほうにある次の2行のURLを、実際の公開URLに書き換えてGitHubに再アップロードしてください。Xのカード画像が正しく表示されるようになります。
 
 ```html
 <meta property="og:url" content="https://nananator.pages.dev/">
@@ -55,7 +58,7 @@ Cloudflare Pages（無料プラン）で公開し、自由入力の判定だけ�
 ## 4. 公開後の確認
 
 1. 公開URLをスマホで開き、質問例と自由入力の質問をそれぞれ1回ずつ送ってみます。
-2. 自由入力で「今は自由入力の判定が使えません」と出る場合は、`ANTHROPIC_API_KEY` の設定を確認し、Cloudflareで「再デプロイ」してください。
+2. 自由入力で「今は自由入力の判定が使えません」と出る場合は、`ANTHROPIC_API_KEY` の設定を確認してください。
 3. URLをXに投稿すると、カード画像付きで表示されます。
 
 ## 5. いたずら・使いすぎ対策（おすすめ）

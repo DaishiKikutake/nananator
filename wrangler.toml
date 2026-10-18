@@ -1,3 +1,9 @@
+# Cloudflare Workers の設定
+# name はCloudflareの画面で作ったWorkerの名前と同じにしてください
 name = "nananator"
-pages_build_output_dir = "public"
+main = "src/worker.js"
 compatibility_date = "2026-01-01"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
