@@ -1,9 +1,12 @@
-import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, aiPrompt, songCard, json, rateLimited, AI_PER_MINUTE } from "../_lib/game.js";
+import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, aiRequestBody, songCard, json, rateLimited, AI_PER_MINUTE, DAILY_ASK_LIMIT } from "../_lib/game.js";
 
 // 質問を判定する。曲名だけの回答と質問例はサーバー内で判定し、それ以外はClaudeに問い合わせる
 export async function onRequestPost({ request, env }){
   // 連打・大量アクセス対策（AIを使わない質問も含めた全体の上限。普通に遊ぶ分には届かない）
   if(rateLimited(request, 60, "ask")) return json({error:"rate_limited"}, 429);
+  // 1日の上限（自由入力・質問例・曲名の回答をすべて含めて直近24時間で200回）
+  // ※サーバーごとのメモリで数えるため目安の上限。サーバーが入れ替わると数え直しになる
+  if(rateLimited(request, DAILY_ASK_LIMIT, "day", 24*60*60*1000)) return json({error:"daily_limited"}, 429);
   const body = await request.json().catch(()=>({}));
   const q = String(body.q || "").trim().slice(0, 100);
   if(!q) return json({error:"empty"}, 400);
@@ -41,7 +44,7 @@ export async function onRequestPost({ request, env }){
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method:"POST",
         headers:{ "x-api-key":env.ANTHROPIC_API_KEY, "anthropic-version":"2023-06-01", "content-type":"application/json" },
-        body: JSON.stringify({ model: env.MODEL || MODEL, max_tokens: 400, messages:[{role:"user", content: aiPrompt(q, song)}] })
+        body: JSON.stringify(aiRequestBody(q, song, env.MODEL || MODEL))
       });
       if(!res.ok){
         detail = `status ${res.status}`;

@@ -370,7 +370,7 @@ async function ask(raw){
     else if(r.kind==="unknown"){ record(q, "わからない", "unknown", r.comment); setStatus("「わからない」は質問数に数えません。"); }
     else { record(q, r.answer, r.kind, r.comment); setStatus(r.kind==="guess" ? "違う曲です。" : ""); }
   }catch(e){
-    const msg = {rate_limited:"アクセスが集中しています。少し待ってからもう一度送ってください。", ai_rate_limited:"自由入力の質問は1分間に7回までです。少し待ってから送ってください（質問例や曲名での回答はそのまま使えます）。", ai_unavailable:"今は自由入力の判定が使えません。質問例か曲名で遊べます。", bad_token:"ゲームの情報が壊れています。「GiveUp」か再読み込みで新しいゲームを始めてください。"}[e&&e.error];
+    const msg = {rate_limited:"アクセスが集中しています。少し待ってからもう一度送ってください。", daily_limited:"1日に質問できる回数の上限（200回）に達しました。時間をおいてからまた遊んでください。", ai_rate_limited:"自由入力の質問は1分間に7回までです。少し待ってから送ってください（質問例や曲名での回答はそのまま使えます）。", ai_unavailable:"今は自由入力の判定が使えません。質問例か曲名で遊べます。", bad_token:"ゲームの情報が壊れています。「GiveUp」か再読み込みで新しいゲームを始めてください。"}[e&&e.error];
     setStatus(msg || "判定できませんでした。もう一度送ってください（回数には数えません）。", true);
   }finally{ busy=false; $("askBtn").disabled=false; }
 }
