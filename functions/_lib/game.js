@@ -384,6 +384,57 @@ export const kouhakuFor = s => KOUHAKU[s.title] || [];
 // シングル曲＝シングル（配信・EP・共演シングルを含む）の表題曲とカップリング曲の両方
 export const isSingleSong = s => "ACDX".includes(s.kind);
 
+// 曲名の文字種（1文字ずつ分類する）
+//  ひらがな：ぁ〜ゖ、ゝゞ　カタカナ：ァ〜ヺ、ヽヾ、ヶ（半角ｶﾅも含む）
+//  漢字：CJK統合漢字と「々」「〆」（漢数字も漢字）　アルファベット：A〜Z・a〜z（全角も含む）　数字：0〜9（全角も含む）
+//  長音「ー」は前の文字と同じ種類として扱う。空白は数えない。それ以外（・ ! ? & ☆ ★ ∞ 〜 - ' . など）は記号
+export function charKind(c){
+  if(/[\u3041-\u3096\u309D\u309E]/.test(c)) return "ひらがな";
+  if(/[\u30A1-\u30FA\u30FD\u30FE]/.test(c)) return "カタカナ";
+  if(/[\u4E00-\u9FFF\u3400-\u4DBF\u3005\u3006]/.test(c)) return "漢字";
+  if(/[A-Za-z]/.test(c)) return "アルファベット";
+  if(/[0-9]/.test(c)) return "数字";
+  if(/\s/.test(c)) return null;
+  return "記号";
+}
+export function titleChars(title){
+  const out = []; let prev = null;
+  for(const raw of [...String(title)]){
+    const c = raw.normalize("NFKC");   // 全角英数・半角カナをそろえる
+    for(const ch of [...c]){
+      let k = ch==="ー" ? (prev && prev!=="記号" ? prev : "記号") : charKind(ch);
+      if(k) { out.push([ch,k]); prev = k; }
+    }
+  }
+  return out;
+}
+export const KINDS_ORDER = ["ひらがな","カタカナ","漢字","アルファベット","数字","記号"];
+export function titleKinds(title){ const set = new Set(titleChars(title).map(x=>x[1])); return KINDS_ORDER.filter(k=>set.has(k)); }
+
+// 「曲名にひらがなが含まれますか？」などをAIを通さず判定する
+const KIND_WORDS = [["ひらがな",/ひらがな|平仮名/],["カタカナ",/カタカナ|片仮名/],["漢字",/漢字/],["アルファベット",/アルファベット|英字|ローマ字|英文字/],["数字",/数字/],["記号",/記号/]];
+export function scriptAnswer(q, s){
+  const t = String(q).normalize("NFKC").replace(/\s+/g,"");
+  const asked = KIND_WORDS.filter(([,re])=>re.test(t)).map(([k])=>k);
+  if(!asked.length) return null;
+  if(!/曲名|タイトル|題名/.test(t)) return null;
+  // 文字数・位置・読み・ほかの条件が混ざる質問はAIに任せる
+  if(/文字数|何文字|文字以上|文字以下|文字未満|最初|最後|始ま|終わ|頭文字|先頭|末尾|読み|英語|日本語|単語|または|それとも|か、|以外|かつ|半分|多い|少ない/.test(t)) return null;
+  const have = titleKinds(s.title);
+  const only = /だけ|のみ|しか|すべて|全て|全部/.test(t);
+  const neg = /(含まれ|入って|使われ|使って|入ってい)(い)?ない|含まない|無い|ないです|ないか/.test(t) && !/ませんか/.test(t);
+  if(only){
+    if(neg) return null;
+    // 記号を聞いていないときは記号を無視する（「Mr.Bunny!」もアルファベットだけ）
+    const core = have.filter(k=>k!=="記号" || asked.includes("記号"));
+    const ok = core.length>0 && core.every(k=>asked.includes(k)) && asked.every(k=>have.includes(k));
+    return ok ? "はい" : "いいえ";
+  }
+  if(!/含|入っ|入る|使|ある|あり|混ざ|まじ|交じ|表記|書か/.test(t)) return null;
+  const all = asked.every(k=>have.includes(k));
+  return (neg ? !all : all) ? "はい" : "いいえ";
+}
+
 export const PRESETS = [
   ["2000年代（2000〜2009年）の曲ですか？", s=>s.year>=2000&&s.year<=2009],
   ["2010年代の曲ですか？", s=>s.year>=2010&&s.year<=2019],
@@ -397,11 +448,11 @@ export const PRESETS = [
   ["何らかのタイアップがありますか？", s=>!!s.tie],
   ["『魔法少女リリカルなのは』シリーズの曲ですか？", s=>/なのは/.test(s.tie)],
   ["『戦姫絶唱シンフォギア』シリーズの曲ですか？", s=>/シンフォギア/.test(s.tie)],
-  ["曲名はアルファベット（英語など）だけですか？", s=>!/[぀-ヿ一-鿿]/.test(s.title)],
+  ["曲名はアルファベット（英語など）だけですか？", s=>{ const k=titleKinds(s.title).filter(x=>x!=="記号"); return k.length===1 && k[0]==="アルファベット"; }],
   ["オリジナルアルバムに収録されていますか？", s=>s.tracks.some(t=>!isBest(t.album))],
   ["オリジナルアルバムの1曲目ですか？", s=>s.tracks.some(t=>!isBest(t.album)&&t.no===1)],
   ["ベストアルバム『THE MUSEUM』シリーズに収録されていますか？", s=>s.tracks.some(t=>isBest(t.album))],
-  ["曲名に漢字が含まれますか？", s=>/[一-鿿]/.test(s.title)],
+  ["曲名に漢字が含まれますか？", s=>titleKinds(s.title).includes("漢字")],
   ["カバー曲ですか？", s=>/カバー/.test(s.note)],
   ["他のアーティストとの共演曲ですか？", s=>/共演|feat\./.test(s.note)],
   ["NHK紅白歌合戦で歌唱した曲ですか？", s=>kouhakuFor(s).length>0],
@@ -509,7 +560,7 @@ export function parseJudge(text){
 }
 
 export function aiPrompt(q, s){
-  const data = {曲名:s.title, 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], シングル曲:isSingleSong(s)?`はい（シングル「${s.release}」の${s.kind==="C"?"カップリング曲":"表題曲"}）`:"いいえ（シングルには収録されていない）", 初出作品:s.release, NHK紅白歌合戦での歌唱:kouhakuFor(s).length?kouhakuFor(s):"なし", タイアップ:s.tie||"なし（データ上）", タイアップの種類:tieKinds(s), アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
+  const data = {曲名:s.title, 曲名の文字種:`${titleKinds(s.title).join("・")}（それ以外の文字種は含まない）`, 曲名の文字:titleChars(s.title).map(([c,k])=>c+"="+k).join(" "), 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], シングル曲:isSingleSong(s)?`はい（シングル「${s.release}」の${s.kind==="C"?"カップリング曲":"表題曲"}）`:"いいえ（シングルには収録されていない）", 初出作品:s.release, NHK紅白歌合戦での歌唱:kouhakuFor(s).length?kouhakuFor(s):"なし", タイアップ:s.tie||"なし（データ上）", タイアップの種類:tieKinds(s), アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
   return `あなたは「水樹奈々の楽曲当てゲーム」の審判です。プレーヤーは正解の曲を知らず、はい/いいえで答えられる質問をして曲を当てます。
 正解曲のデータ:
 ${JSON.stringify(data, null, 1)}
@@ -527,7 +578,7 @@ ${(()=>{ const m = mentionedSongs(q, s); return m.length ? "\n参考：質問に
 - 上のデータと参考データだけを根拠にする。あなた自身の記憶や知識は使わない（記憶違いで誤答になるため）。
 - データから判断できないことは必ず "わからない" にする。特に、歌詞の内容・言葉、曲調・テンポ・ジャンル（バラード等）、ライブでの扱い、MVの有無、売上・順位、歌唱方法などはデータにないので "わからない"。
 - データから言い換えや計算で確実に導けること（曲名の文字、発売年、アルバム、作曲者、タイアップ作品の種類など）は答えてよい。
-- 曲名の文字・表記・長さに関する質問は曲名から判断する。発売年や年代は初出日から判断する。
+- 曲名の文字・表記・長さに関する質問は曲名から判断する。ひらがな・カタカナ・漢字などの文字種は必ず「曲名の文字種」「曲名の文字」の分類に従う（自分で判断しない）。発売年や年代は初出日から判断する。
 - アルバムや曲順に関する質問は「アルバム収録と曲順」から判断する（『THE MUSEUM』シリーズはベストアルバム、それ以外はオリジナルアルバム）。
 - ライブでの演奏に関する質問は「公式ライブ映像に収録されている公演」だけで判断する。
   - 質問のライブ（ツアー名だけでも可。例：「LIVE PARADE」）に、この曲が収録されている公演が1つでもあれば「はい」。「LIVE FLIGHT」のように＋（海外公演）を付けずに聞かれた場合は、＋の公演も含めて判断する。
