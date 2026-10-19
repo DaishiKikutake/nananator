@@ -1,4 +1,4 @@
-import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, aiPrompt, songCard, json, rateLimited } from "../_lib/game.js";
+import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, aiPrompt, songCard, json, rateLimited } from "../_lib/game.js";
 
 // 質問を判定する。曲名だけの回答と質問例はサーバー内で判定し、それ以外はClaudeに問い合わせる
 export async function onRequestPost({ request, env }){
@@ -17,6 +17,9 @@ export async function onRequestPost({ request, env }){
   // 2) 質問例
   const pa = presetAnswer(q, song);
   if(pa) return json({kind:"question", answer:pa});
+  // 「○枚目のアルバムより前／まで／以降」などはデータから機械的に判定
+  const aa = albumNoAnswer(q, song);
+  if(aa) return json({kind:"question", answer:aa});
 
   // 歌詞の質問はデータが無く判定できないので、AIに送らず「わからない」（回数に数えない）
   const why = unanswerableReason(q);

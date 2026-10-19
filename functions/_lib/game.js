@@ -464,6 +464,33 @@ export function mentionedSongs(q, answer){
   return found.slice(0,3).map(s=>({曲名:s.title, 初出日:s.date, 初出作品:s.release, 種別:KIND[s.kind], アルバム収録と曲順:trackText(s), 作曲:s.co||"不明"}));
 }
 
+// 「5枚目のアルバムより前のアルバムに収録？」などをAIを通さず判定する（オリジナルアルバムのみ数える）
+const KANJI_NUM = {一:1,二:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9,十:10,十一:11,十二:12,十三:13,十四:14,十五:15};
+export function albumNoAnswer(q, s){
+  let t = String(q).normalize("NFKC").replace(/\s+/g,"");
+  t = t.replace(/(十[一二三四五]|[一二三四五六七八九十])枚目/g, (m,k)=>KANJI_NUM[k]+"枚目");
+  if(!/枚目/.test(t) || !/収録|入って|入ってる|含ま|載って/.test(t)) return null;
+  // ほかの条件が混ざる質問・発売時期の質問はAIに任せる
+  if(/曲目|番目|表題|シングル|カップリング|作詞|作曲|編曲|年|ライブ|紅白|かつ|または|それとも|以外|ベスト|MUSEUM|初めて|最初|発売|リリース|出た|EP|配信/i.test(t)) return null;
+  const nums = [...t.matchAll(/(\d+)枚目/g)].map(m=>+m[1]);
+  if(nums.some(n=>n<1||n>ORIGINAL_ALBUMS.length)) return null;
+  let lo, hi;
+  const range = t.match(/(\d+)枚目(?:のアルバム)?から(\d+)枚目/);
+  if(range){ lo=+range[1]; hi=+range[2]; if(lo>hi) [lo,hi]=[hi,lo]; }
+  else{
+    if(nums.length !== 1) return null;
+    const n = nums[0], rest = t.slice(t.indexOf(n+"枚目")+String(n).length+2);
+    if(/^(?:の(?:オリジナル)?アルバム)?(?:より)?(?:前|古い|昔)/.test(rest)){ lo=1; hi=n-1; }
+    else if(/^(?:の(?:オリジナル)?アルバム)?(?:以前|まで)/.test(rest)){ lo=1; hi=n; }
+    else if(/^(?:の(?:オリジナル)?アルバム)?以降/.test(rest)){ lo=n; hi=ORIGINAL_ALBUMS.length; }
+    else if(/^(?:の(?:オリジナル)?アルバム)?(?:より)?(?:後|あと|新しい)/.test(rest)){ lo=n+1; hi=ORIGINAL_ALBUMS.length; }
+    else if(/^(?:の(?:オリジナル)?アルバム)?(?:に|で|へ|には)/.test(rest)){ lo=n; hi=n; }
+    else return null;
+  }
+  const mine = s.tracks.map(x=>albumNo(x.album)).filter(Boolean);
+  return mine.some(n=>n>=lo && n<=hi) ? "はい" : "いいえ";
+}
+
 // 歌詞・曲調など、データに無いので判定できない質問（AIに送らず「わからない」を返す）
 export function unanswerableReason(q){
   const t = String(q).normalize("NFKC");
