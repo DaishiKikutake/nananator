@@ -369,10 +369,22 @@ export function tieKinds(s){
   if(tieParts(s).some(p => /映画|上映作品/.test(p) && !ANIME_RE.test(p))) k.push("映画・上映作品（アニメ作品かは不明）");
   return k.length ? k.join("、") : "その他";
 }
+// NHK紅白歌合戦で歌唱した曲（出典：Wikipedia「水樹奈々」NHK紅白歌合戦出場歴）
+const KOUHAKU = {
+  "深愛":["第60回（2009年）"], "PHANTOM MINDS":["第61回（2010年）"], "POP MASTER":["第62回（2011年）"],
+  "BRIGHT STREAM":["第63回（2012年）"], "革命デュアリズム":["第64回（2013年・T.M.Revolutionと共演）"],
+  "Preserved Roses":["第64回（2013年・T.M.Revolutionと共演）","第65回（2014年・T.M.Revolutionと共演）"],
+  "禁断のレジスタンス":["第65回（2014年）"]
+};
+export const kouhakuFor = s => KOUHAKU[s.title] || [];
+// シングル曲＝シングル（配信・EP・共演シングルを含む）の表題曲とカップリング曲の両方
+export const isSingleSong = s => "ACDX".includes(s.kind);
+
 export const PRESETS = [
   ["2000年代（2000〜2009年）の曲ですか？", s=>s.year>=2000&&s.year<=2009],
   ["2010年代の曲ですか？", s=>s.year>=2010&&s.year<=2019],
   ["2020年以降の曲ですか？", s=>s.year>=2020],
+  ["シングル曲（表題曲・カップリング曲）ですか？", isSingleSong],
   ["シングル（配信・EP含む）の表題曲ですか？", s=>"ADX".includes(s.kind)],
   ["シングルのカップリング曲ですか？", s=>s.kind==="C"],
   ["アルバムで初めて発表された曲ですか？", s=>s.kind==="L"],
@@ -388,6 +400,7 @@ export const PRESETS = [
   ["曲名に漢字が含まれますか？", s=>/[一-鿿]/.test(s.title)],
   ["カバー曲ですか？", s=>/カバー/.test(s.note)],
   ["他のアーティストとの共演曲ですか？", s=>/共演|feat\./.test(s.note)],
+  ["NHK紅白歌合戦で歌唱した曲ですか？", s=>kouhakuFor(s).length>0],
   ["公式ライブ映像（Blu-ray/DVD）に収録されたことがありますか？", s=>livesFor(s).length>0],
   ["水樹奈々さん本人が作曲した曲ですか？", s=>/水樹奈々/.test(s.co)],
   ["水樹奈々さん本人が作詞した曲ですか？", s=>/水樹奈々/.test(s.ly)],
@@ -403,6 +416,7 @@ export function songCard(s){
   const rows = [["初出", `${s.date.replace(/-/g,".")}　${s.release}（${KIND[s.kind]}）`], ["タイアップ", s.tie||"なし（データ上）"], ["アルバム収録", trackText(s)]];
   const cr=[s.ly&&"作詞："+s.ly, s.co&&"作曲："+s.co, s.ar&&"編曲："+s.ar].filter(Boolean).join("　");
   if(cr) rows.push(["クレジット", cr]);
+  if(kouhakuFor(s).length) rows.push(["NHK紅白歌合戦", kouhakuFor(s).join("、")]);
   const lt = liveToursFor(s);
   if(lt.length) rows.push(["ライブ映像", `${lt.length}ツアー（${lt.slice(-3).join("、")}${lt.length>3?" ほか":""}）`]);
   if(s.note) rows.push(["メモ", s.note]);
@@ -464,7 +478,7 @@ export function parseJudge(text){
 }
 
 export function aiPrompt(q, s){
-  const data = {曲名:s.title, 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], 初出作品:s.release, タイアップ:s.tie||"なし（データ上）", タイアップの種類:tieKinds(s), アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
+  const data = {曲名:s.title, 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], シングル曲:isSingleSong(s)?`はい（シングル「${s.release}」の${s.kind==="C"?"カップリング曲":"表題曲"}）`:"いいえ（シングルには収録されていない）", 初出作品:s.release, NHK紅白歌合戦での歌唱:kouhakuFor(s).length?kouhakuFor(s):"なし", タイアップ:s.tie||"なし（データ上）", タイアップの種類:tieKinds(s), アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
   return `あなたは「水樹奈々の楽曲当てゲーム」の審判です。プレーヤーは正解の曲を知らず、はい/いいえで答えられる質問をして曲を当てます。
 正解曲のデータ:
 ${JSON.stringify(data, null, 1)}
@@ -489,6 +503,8 @@ ${(()=>{ const m = mentionedSongs(q, s); return m.length ? "\n参考：質問に
   - 質問のライブが参考の一覧にあり「全公演収録」なのに、この曲が無ければ「いいえ」。
   - それ以外（映像に無い、一覧に無いライブ、日付や会場まで指定されていて一致しない等）は、ほかの公演で歌った可能性があるので "わからない"。
   - 「ライブで歌われたことがありますか」のように特定しない質問は、収録公演が1つでもあれば「はい」、無ければ "わからない"。
+- 「シングル曲」「シングルに収録」は表題曲とカップリング曲の両方を含む（「シングル曲」欄で判断）。「表題曲」「A面」「タイトル曲」と聞かれた場合だけ表題曲に限る。
+- 「紅白」「NHK紅白歌合戦」で歌ったかは「NHK紅白歌合戦での歌唱」欄で判断する（なしなら「いいえ」）。
 - 「アニメのタイアップ」「アニメの主題歌」などアニメかどうかの質問は「タイアップの種類」に「アニメ作品」があるかで判断する。「アニメロミックス」「animelo」はアニメ作品ではない（配信サービス・イベント名）。
 - 「○枚目のアルバム」「○○より前／後のアルバム」などは参考のアルバム一覧で判断する。「アルバム未収録」の曲はどのアルバムにも入っていない（「いいえ」）。
 - 「○○より前／後に発表された」「○○と同じアルバム／シングル」など、ほかの曲と比べる質問は「参考：質問に出てくるほかの曲のデータ」と比べて判断する。初出日が同じなら「同時期」として、前後の質問には「いいえ」。
