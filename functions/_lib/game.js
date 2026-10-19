@@ -477,6 +477,40 @@ export function trackAnswer(q, s){
   return ok===null || ok===undefined ? null : (ok ? "はい" : "いいえ");
 }
 
+// 「作詞は水樹奈々さんですか？」「上松範康さんの作曲？」などをAIを通さず判定する
+const splitNames = f => String(f||"").split(/[・、,\/&＆]| feat\. /).map(n=>n.replace(/[（(][^)）]*[)）]/g,"").trim()).filter(Boolean);
+const NAME_SAME = [["齋藤真也","斎藤真也","斉藤真也"],["HIBIKI","Hibiki"],["飯田高広","イイダタカヒロ"],["Yu-pan.","Yu-pan"],["藤田淳平","Junpei Fujita"]];
+const canonName = n => { const g = NAME_SAME.find(g=>g.includes(n)); return g ? g[0] : n; };
+const CREDIT_NAMES = (()=>{ const set = new Set(); for(const x of SONGS) for(const f of [x.ly,x.co,x.ar]) for(const n of splitNames(f)) set.add(n); return [...set]; })();
+// 名字だけでも分かるように（漢字4文字以上の名前で、先頭2文字がほかの人と重ならないとき）
+const SURNAMES = (()=>{ const m = new Map(); for(const n of CREDIT_NAMES){ if(/^[\u4e00-\u9fff]{4,}$/.test(n)){ const k=n.slice(0,2); m.set(k, m.has(k) && canonName(m.get(k))!==canonName(n) ? null : n); } } return m; })();
+const EG_RE = /上松範康|藤間仁|藤田淳平|菊田大介|中山真斗|母里治樹|藤永龍太郎|Elements Garden/i;
+export function creditAnswer(q, s){
+  const t = String(q).normalize("NFKC").replace(/\s+/g,"");
+  const roles = [];
+  if(/作詞/.test(t)) roles.push("ly");
+  if(/作曲/.test(t)) roles.push("co");
+  if(/編曲|アレンジ/.test(t)) roles.push("ar");
+  if(!roles.length) return null;
+  // 否定・共作・ほかの条件が混ざる質問はAIに任せる
+  if(/以外|ではない|じゃない|でない|共作|共同|単独|ひとりで|1人で|一人で|だけで|または|それとも|かつ|ほかの人|他の人|複数|何人|曲名|タイトル|年|アルバム|シングル|アニメ|ゲーム|タイアップ|ライブ/.test(t)) return null;
+  // 誰についての質問か
+  let who = null, eg = false;
+  if(/本人|水樹|奈々|ななさん|ナナさん/.test(t)) who = "水樹奈々";
+  else if(/ElementsGarden|エレメンツガーデン|エレガ/i.test(t)) eg = true;
+  else {
+    const nt = norm(t);
+    const full = CREDIT_NAMES.filter(n=>norm(n).length>=2 && nt.includes(norm(n))).sort((a,b)=>b.length-a.length);
+    if(full.length) who = full[0];
+    else { for(const [k,n] of SURNAMES) if(n && t.includes(k)){ who = n; break; } }
+  }
+  if(!who && !eg) return null;
+  const fields = {ly:s.ly, co:s.co, ar:s.ar};
+  if(roles.some(r=>!fields[r])) return null;   // クレジット不明はAIに任せる（「わからない」）
+  const has = r => eg ? EG_RE.test(fields[r]) : splitNames(fields[r]).some(n=>canonName(n)===canonName(who));
+  return roles.every(has) ? "はい" : "いいえ";
+}
+
 // 曲名の文字種（1文字ずつ分類する）
 //  ひらがな：ぁ〜ゖ、ゝゞ　カタカナ：ァ〜ヺ、ヽヾ、ヶ（半角ｶﾅも含む）
 //  漢字：CJK統合漢字と「々」「〆」（漢数字も漢字）　アルファベット：A〜Z・a〜z（全角も含む）　数字：0〜9（全角も含む）
