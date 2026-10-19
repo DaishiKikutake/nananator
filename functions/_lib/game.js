@@ -22,7 +22,7 @@ Summer Sweet||2002-05-01|C|LOVE & HISTORY||||村野直球|Takeshi|牧野信博|
 POWER GATE||2002-05-01|A|POWER GATE|テレビ大阪『M-VOICE』エンディングテーマ|MAGIC ATTRACTION|LOVE & HISTORYと同時発売|矢吹俊郎|矢吹俊郎|矢吹俊郎|MAGIC ATTRACTION:14;THE MUSEUM:5
 おんなになあれ||2002-05-01|C|POWER GATE|||森川美穂のカバー曲|飛鳥涼|飛鳥涼|大平勉|
 suddenly〜巡り合えて〜|suddenly;巡り合えて;めぐりあえて|2002-09-25|A|suddenly〜巡り合えて〜/Brilliant Star||MAGIC ATTRACTION|両A面シングル|矢吹俊郎|矢吹俊郎|矢吹俊郎|MAGIC ATTRACTION:8;THE MUSEUM:6
-Brilliant Star||2002-09-25|A|suddenly〜巡り合えて〜/Brilliant Star|ドラマCD『少年進化論plusスペシャル番外編 中年進化論plus』イメージソング|MAGIC ATTRACTION|両A面シングル|志倉千代丸|志倉千代丸|磯江俊道|MAGIC ATTRACTION:13
+Brilliant Star||2002-09-25|C|suddenly〜巡り合えて〜/Brilliant Star|ドラマCD『少年進化論plusスペシャル番外編 中年進化論plus』イメージソング|MAGIC ATTRACTION|両A面シングル|志倉千代丸|志倉千代丸|磯江俊道|MAGIC ATTRACTION:13
 オルゴールとピアノと|オルゴールとピアノと -holy style-|2002-11-06|L|MAGIC ATTRACTION|ゲーム『Memories Off 2nd』エンディングテーマ|MAGIC ATTRACTION||志倉千代丸|志倉千代丸||MAGIC ATTRACTION:9
 through the night||2002-11-06|L|MAGIC ATTRACTION||MAGIC ATTRACTION||矢吹俊郎|イイダタカヒロ||MAGIC ATTRACTION:2
 PROTECTION||2002-11-06|L|MAGIC ATTRACTION||MAGIC ATTRACTION||矢吹俊郎|矢吹俊郎||MAGIC ATTRACTION:3
@@ -88,7 +88,7 @@ Violetta||2006-05-03|L|HYBRID UNIVERSE||HYBRID UNIVERSE||水樹奈々|水樹奈�
 PRIMAL AFFECTION||2006-05-03|L|HYBRID UNIVERSE||HYBRID UNIVERSE||矢吹俊郎|矢吹俊郎||HYBRID UNIVERSE:12
 ひとつだけ誓えるなら||2006-05-03|L|HYBRID UNIVERSE||HYBRID UNIVERSE||Bee'|上松範康(Elements Garden)||HYBRID UNIVERSE:13
 Justice to Believe||2006-11-15|A|Justice to Believe/アオイイロ|PS2ゲーム『WILD ARMS the Vth Vanguard』オープニングテーマ||両A面シングル|水樹奈々|上松範康|上松範康|THE MUSEUM:14
-アオイイロ|あおいいろ|2006-11-15|A|Justice to Believe/アオイイロ|テレビ東京『うぇぶたま』エンディングテーマ|GREAT ACTIVITY|両A面シングル|Bee'|AGENT-MR|AGENT-MR|GREAT ACTIVITY:9
+アオイイロ|あおいいろ|2006-11-15|C|Justice to Believe/アオイイロ|テレビ東京『うぇぶたま』エンディングテーマ|GREAT ACTIVITY|両A面シングル|Bee'|AGENT-MR|AGENT-MR|GREAT ACTIVITY:9
 Crystal Letter||2007-02-07|L|THE MUSEUM|PS2ゲーム『WILD ARMS the Vth Vanguard』エンディングテーマ|THE MUSEUM|ベストアルバムの新曲|HIBIKI|藤末樹||THE MUSEUM:15
 SECRET AMBITION|シークレットアンビション|2007-04-18|A|SECRET AMBITION|テレビアニメ『魔法少女リリカルなのはStrikerS』前期オープニングテーマ|GREAT ACTIVITY||水樹奈々|志倉千代丸|藤間仁|GREAT ACTIVITY:11;THE MUSEUM II:1
 Heart-shaped chant|heart shaped chant|2007-04-18|C|SECRET AMBITION|PS2ゲーム『シャイニング・ウィンド』オープニングテーマ|GREAT ACTIVITY||水樹奈々|上松範康|上松範康|GREAT ACTIVITY:13
@@ -204,9 +204,9 @@ Million Ways=One Destination|million ways one destination|2014-04-16|L|SUPERNAL 
 BLUE||2014-10-15|C|禁断のレジスタンス|劇場版『宇宙戦艦ヤマト2199 追憶の航海』エンディングテーマ|||水樹奈々|吉木絵里子|藤間仁|
 ドリームライダー||2014-10-15|C|禁断のレジスタンス||||水樹奈々・SAYURI|加藤裕介|陶山隼|
 エデン|eden|2015-01-14|A|エデン|日本テレビ系『スッキリ!!』テーマソング、「animelo mix」CMソング|SMASHING ANTHEMS|クアトロA面シングル|水樹奈々|藤森真一|藤間仁(Elements Garden)|SMASHING ANTHEMS:13;THE MUSEUM III:6
-No Limit||2015-01-14|A|エデン|テレビアニメ『DOG DAYS″』オープニングテーマ||クアトロA面シングル|水樹奈々|陶山隼|陶山隼|
-終末のラブソング|しゅうまつのらぶそんぐ|2015-01-14|A|エデン|テレビアニメ『クロスアンジュ 天使と竜の輪舞』後期エンディングテーマ||クアトロA面シングル|水樹奈々|吉木絵里子|藤間仁(Elements Garden)|
-Necessary||2015-01-14|A|エデン|テレビアニメ『クロスアンジュ 天使と竜の輪舞』挿入歌||クアトロA面シングル|松井五郎|Zetta|EFFY|
+No Limit||2015-01-14|C|エデン|テレビアニメ『DOG DAYS″』オープニングテーマ||クアトロA面シングル|水樹奈々|陶山隼|陶山隼|
+終末のラブソング|しゅうまつのらぶそんぐ|2015-01-14|C|エデン|テレビアニメ『クロスアンジュ 天使と竜の輪舞』後期エンディングテーマ||クアトロA面シングル|水樹奈々|吉木絵里子|藤間仁(Elements Garden)|
+Necessary||2015-01-14|C|エデン|テレビアニメ『クロスアンジュ 天使と竜の輪舞』挿入歌||クアトロA面シングル|松井五郎|Zetta|EFFY|
 Angel Blossom|エンジェルブロッサム|2015-04-22|A|Angel Blossom|テレビアニメ『魔法少女リリカルなのはViVid』オープニングテーマ|||水樹奈々|光増ハジメ|EFFY|SMASHING ANTHEMS:4;THE MUSEUM III:7
 レイジーシンドローム||2015-04-22|C|Angel Blossom|TOKYO FM『水樹奈々のMの世界』エンディングテーマ|||ヨシダタクミ(phatmans after school)|ヨシダタクミ(phatmans after school)|藤間仁|SMASHING ANTHEMS:6
 あしたgraffiti|明日graffiti;あしたグラフィティ|2015-04-22|C|Angel Blossom|愛媛銀行 CMソング|||藤林聖子|加藤裕介|加藤裕介|
@@ -275,7 +275,7 @@ glitch|グリッチ|2019-12-11|L|CANNONBALL RUNNING||CANNONBALL RUNNING||中野�
 Light Births Shadow||2019-12-11|L|CANNONBALL RUNNING|TOKYO FM『水樹奈々のMの世界』エンディングテーマ|CANNONBALL RUNNING||松井五郎|ラムシーニ・小高光太郎・藤井亮太|小高光太郎・藤井亮太|CANNONBALL RUNNING:13
 UPSETTER||2019-12-11|L|CANNONBALL RUNNING||CANNONBALL RUNNING||水樹奈々|水樹奈々|藤間仁|CANNONBALL RUNNING:15
 FIRE SCREAM|ファイアスクリーム|2020-10-07|A|FIRE SCREAM/No Rain, No Rainbow|スマートフォンゲーム『戦姫絶唱シンフォギアXD UNLIMITED』主題歌|DELIGHTED REVIVER|両A面シングル|水樹奈々|上松範康(Elements Garden)|菊田大介|DELIGHTED REVIVER:11;THE MUSEUM IV:7
-No Rain, No Rainbow|no rain no rainbow|2020-10-07|A|FIRE SCREAM/No Rain, No Rainbow|テレビアニメ『デュエル・マスターズ キング』オープニングテーマ||両A面シングル|ヨシダタクミ(saji)|ヨシダタクミ(saji)|藤間仁|
+No Rain, No Rainbow|no rain no rainbow|2020-10-07|C|FIRE SCREAM/No Rain, No Rainbow|テレビアニメ『デュエル・マスターズ キング』オープニングテーマ||両A面シングル|ヨシダタクミ(saji)|ヨシダタクミ(saji)|藤間仁|
 Link or Chains||2021-01-10|D|Link or Chains|テレビアニメ『Levius -レビウス-』オープニングテーマ|DELIGHTED REVIVER||しほり|南田健吾|南田健吾|DELIGHTED REVIVER:9;THE MUSEUM IV:8
 Get up! Shout!|get up shout|2021-10-27|A|Get up! Shout!|テレビアニメ『SHAMAN KING』オープニングテーマ|DELIGHTED REVIVER||水樹奈々|山本玲史|加藤裕介|DELIGHTED REVIVER:7;THE MUSEUM IV:9
 Phase 21|phase21;フェイズ21|2021-10-27|C|Get up! Shout!||||山本メーコ|溝口雅大|溝口雅大|
