@@ -108,9 +108,9 @@ Nostalgia||2007-11-14|L|GREAT ACTIVITY||GREAT ACTIVITY||SAYURI|TLAST||GREAT ACTI
 chronicle of sky||2007-11-14|L|GREAT ACTIVITY||GREAT ACTIVITY||志倉千代丸|志倉千代丸||GREAT ACTIVITY:14
 Sing Forever||2007-11-14|L|GREAT ACTIVITY||GREAT ACTIVITY||園田凌士|藤間仁(Elements Garden)||GREAT ACTIVITY:15
 Astrogation||2008-02-06|A|STARCAMP EP|日本テレビ系『音楽戦士 MUSIC FIGHTER』オープニングテーマ|ULTIMATE DIAMOND|EP|Hibiki|陶山隼|陶山隼|ULTIMATE DIAMOND:14;THE MUSEUM II:3
-COSMIC LOVE||2008-02-06|A|STARCAMP EP|テレビアニメ『ロザリオとバンパイア』オープニングテーマ||EP|園田凌士|藤田淳平(Elements Garden)|藤田淳平|THE MUSEUM II:13
-Dancing in the velvet moon||2008-02-06|A|STARCAMP EP|テレビアニメ『ロザリオとバンパイア』エンディングテーマ|ULTIMATE DIAMOND|EP|水樹奈々|上松範康(Elements Garden)|上松範康・中山真斗|ULTIMATE DIAMOND:10
-空時計|そらどけい|2008-02-06|A|STARCAMP EP|||EP|SAYURI|大平勉|大平勉|
+COSMIC LOVE||2008-02-06|C|STARCAMP EP|テレビアニメ『ロザリオとバンパイア』オープニングテーマ||EP|園田凌士|藤田淳平(Elements Garden)|藤田淳平|THE MUSEUM II:13
+Dancing in the velvet moon||2008-02-06|C|STARCAMP EP|テレビアニメ『ロザリオとバンパイア』エンディングテーマ|ULTIMATE DIAMOND|EP|水樹奈々|上松範康(Elements Garden)|上松範康・中山真斗|ULTIMATE DIAMOND:10
+空時計|そらどけい|2008-02-06|C|STARCAMP EP|||EP|SAYURI|大平勉|大平勉|
 Trickster|トリックスター|2008-10-01|A|Trickster|「アニメロミックス」CMソング|ULTIMATE DIAMOND||水樹奈々|上松範康|上松範康|ULTIMATE DIAMOND:4;THE MUSEUM II:4
 DISCOTHEQUE|ディスコティック|2008-10-01|C|Trickster|テレビアニメ『ロザリオとバンパイア CAPU2』オープニングテーマ|||園田凌士|上松範康|上松範康|THE MUSEUM II:14
 Trinity Cross||2008-10-01|C|Trickster|テレビアニメ『ロザリオとバンパイア CAPU2』エンディングテーマ|||志倉千代丸|志倉千代丸|藤間仁|
@@ -164,9 +164,9 @@ Synchrogazer|シンクロゲイザー|2012-01-11|A|Synchrogazer|テレビアニ�
 Love Brick||2012-01-11|C|Synchrogazer|ドラマ『スイッチガール!!』主題歌|||meg rock・水樹奈々・SAYURI|齋藤真也|齋藤真也|
 理想論|りそうろん|2012-01-11|C|Synchrogazer||||藤林聖子|Yu-pan.|藤間仁|
 METRO BAROQUE|メトロバロック|2012-06-06|A|TIME SPACE EP|『劇場版 BLOOD-C The Last Dark』主題歌|ROCKBOUND NEIGHBORS|EP|水樹奈々|やしきん|中山真斗|ROCKBOUND NEIGHBORS:13;THE MUSEUM III:2
-PARTY! PARTY!|party party|2012-06-06|A|TIME SPACE EP|TBS『ランク王国』オープニングテーマ||EP|SAYURI|田尻知之|田尻知之|
-時空サファイア|じくうさふぁいあ|2012-06-06|A|TIME SPACE EP|meiji果汁グミ「メグミとタイヨウII」主題歌||EP|ゆうまお|吉木絵里子|陶山隼|
-ONE||2012-06-06|A|TIME SPACE EP|NHK BSプレミアム『あにまるワンだ〜』エンディングテーマ||EP|水樹奈々|内池秀和|藤間仁|
+PARTY! PARTY!|party party|2012-06-06|C|TIME SPACE EP|TBS『ランク王国』オープニングテーマ||EP|SAYURI|田尻知之|田尻知之|
+時空サファイア|じくうさふぁいあ|2012-06-06|C|TIME SPACE EP|meiji果汁グミ「メグミとタイヨウII」主題歌||EP|ゆうまお|吉木絵里子|陶山隼|
+ONE||2012-06-06|C|TIME SPACE EP|NHK BSプレミアム『あにまるワンだ〜』エンディングテーマ||EP|水樹奈々|内池秀和|藤間仁|
 BRIGHT STREAM|ブライトストリーム|2012-08-01|A|BRIGHT STREAM|劇場版『魔法少女リリカルなのは The MOVIE 2nd A's』主題歌|ROCKBOUND NEIGHBORS||水樹奈々|吉木絵里子|藤間仁|ROCKBOUND NEIGHBORS:6;THE MUSEUM III:3
 FEARLESS HERO||2012-08-01|C|BRIGHT STREAM|テレビアニメ『DOG DAYS'』オープニングテーマ|||藤林聖子|奈良悠樹|藤田淳平|
 Sacred Force||2012-08-01|C|BRIGHT STREAM|劇場版『魔法少女リリカルなのは The MOVIE 2nd A's』挿入歌|ROCKBOUND NEIGHBORS||Hibiki|しほり|藤間仁|ROCKBOUND NEIGHBORS:15
@@ -251,9 +251,9 @@ HOT BLOOD||2018-01-10|L|THE MUSEUM III|テレビアニメ『バジリスク 〜�
 粋恋|すいれん|2018-01-10|L|THE MUSEUM III|テレビアニメ『バジリスク 〜桜花忍法帖〜』エンディングテーマ|THE MUSEUM III|ベストアルバムの新曲|岩里祐穂|K-WONDER・SAS3|藤間仁|THE MUSEUM III:13
 BLUE ROSE|ブルーローズ|2018-05-19|D|BLUE ROSE|スマートフォンゲーム『クイズRPG 魔法使いと黒猫のウィズ』テーマ曲|CANNONBALL RUNNING||しほり|福田初・kikurage・石川陽泉|藤間仁|CANNONBALL RUNNING:6;THE MUSEUM IV:1
 WHAT YOU WANT||2018-09-26|A|WONDER QUEST EP|Webアニメ『モンスターストライク』エンディングテーマ|CANNONBALL RUNNING|EP|しほり|ats-|ats-・清水武仁・渡辺徹|CANNONBALL RUNNING:8;THE MUSEUM IV:2
-結界|けっかい|2018-09-26|A|WONDER QUEST EP|ゲームアプリ『陰陽師本格幻想RPG』テーマ曲||EP。水樹奈々 feat. 宮野真守|松井五郎|光増ハジメ|EFFY|
-Birth of Legend||2018-09-26|A|WONDER QUEST EP|スマートフォンゲーム『交響性ミリオンアーサー』主題歌||EP|藤林聖子|南田健吾|南田健吾|
-Hungry Hungry||2018-09-26|A|WONDER QUEST EP|なか卯 CMソング||EP|しほり|加藤裕介|加藤裕介|
+結界|けっかい|2018-09-26|C|WONDER QUEST EP|ゲームアプリ『陰陽師本格幻想RPG』テーマ曲||EP。水樹奈々 feat. 宮野真守|松井五郎|光増ハジメ|EFFY|
+Birth of Legend||2018-09-26|C|WONDER QUEST EP|スマートフォンゲーム『交響性ミリオンアーサー』主題歌||EP|藤林聖子|南田健吾|南田健吾|
+Hungry Hungry||2018-09-26|C|WONDER QUEST EP|なか卯 CMソング||EP|しほり|加藤裕介|加藤裕介|
 NEVER SURRENDER|ネバーサレンダー|2018-10-24|A|NEVER SURRENDER|劇場版『魔法少女リリカルなのは Detonation』主題歌|CANNONBALL RUNNING||水樹奈々|加藤裕介|加藤裕介|CANNONBALL RUNNING:12;THE MUSEUM IV:3
 GET BACK||2018-10-24|C|NEVER SURRENDER|劇場版『魔法少女リリカルなのは Detonation』挿入歌|||矢吹俊郎|HAMA-kgn|EFFY|
 サーチライト||2018-10-24|C|NEVER SURRENDER|映画『ふたつの昨日と僕の未来』主題歌|||水樹奈々・藤森真一(藍坊主)|藤森真一(藍坊主)|藤間仁|
