@@ -327,7 +327,11 @@ export const SONGS = RAW.trim().split("\n").map((l,i)=>{
   return {id:i,title,aliases:al?al.split(";"):[],date,year:+date.slice(0,4),kind,release,tie:tie||"",album:album||"",note:note||"",ly:ly||"",co:co||"",ar:ar||"",tracks};
 });
 const isBest = a => /THE MUSEUM/.test(a);
-const trackText = s => s.tracks.length ? s.tracks.map(t=>`『${t.album}』${t.no}曲目`).join("、") : "アルバム未収録";
+// オリジナルアルバムの枚数（EP・ベストアルバムは数えない）
+const ORIGINAL_ALBUMS = ["supersonic girl","MAGIC ATTRACTION","DREAM SKIPPER","ALIVE & KICKING","HYBRID UNIVERSE","GREAT ACTIVITY","ULTIMATE DIAMOND","IMPACT EXCITER","ROCKBOUND NEIGHBORS","SUPERNAL LIBERTY","SMASHING ANTHEMS","NEOGENE CREATION","CANNONBALL RUNNING","DELIGHTED REVIVER","CONTEMPORARY EMOTION"];
+const albumNo = a => ORIGINAL_ALBUMS.indexOf(a) + 1;   // 0 = オリジナルアルバムではない
+const albumLabel = a => albumNo(a) ? `${albumNo(a)}枚目のアルバム` : "ベストアルバム・枚数に数えない";
+const trackText = s => s.tracks.length ? s.tracks.map(t=>`『${t.album}』（${albumLabel(t.album)}）${t.no}曲目`).join("、") : "アルバム未収録";
 
 const kataToHira = s => s.replace(/[ァ-ヶ]/g, c => String.fromCharCode(c.charCodeAt(0)-0x60));
 export function norm(s){
@@ -445,7 +449,7 @@ export const ALBUMS = [
   ["CANNONBALL RUNNING","2019-12-11","13thアルバム"],["DELIGHTED REVIVER","2022-07-06","14thアルバム"],["CONTEMPORARY EMOTION","2025-03-19","15thアルバム"],
   ["THE MUSEUM IV","2026-01-21","4thベストアルバム"]
 ];
-const ALBUM_TEXT = ALBUMS.map(([n,d,k])=>`${k}『${n}』（${d}）`).join("、");
+const ALBUM_TEXT = ALBUMS.map(([n,d])=>`『${n}』（${albumLabel(n)}、${d}）`).join("、");
 
 // 質問の中に出てくる「ほかの曲」を探して、その曲の情報も判定の参考に渡す
 export function mentionedSongs(q, answer){
@@ -506,7 +510,7 @@ ${(()=>{ const m = mentionedSongs(q, s); return m.length ? "\n参考：質問に
 - 「シングル曲」「シングルに収録」は表題曲とカップリング曲の両方を含む（「シングル曲」欄で判断）。「表題曲」「A面」「タイトル曲」と聞かれた場合だけ表題曲に限る。
 - 「紅白」「NHK紅白歌合戦」で歌ったかは「NHK紅白歌合戦での歌唱」欄で判断する（なしなら「いいえ」）。
 - 「アニメのタイアップ」「アニメの主題歌」などアニメかどうかの質問は「タイアップの種類」に「アニメ作品」があるかで判断する。「アニメロミックス」「animelo」はアニメ作品ではない（配信サービス・イベント名）。
-- 「○枚目のアルバム」「○○より前／後のアルバム」などは参考のアルバム一覧で判断する。「アルバム未収録」の曲はどのアルバムにも入っていない（「いいえ」）。
+- 「○枚目のアルバム」はオリジナルアルバムだけを数える（EP・ベストアルバム『THE MUSEUM』シリーズは数えない）。「アルバム収録と曲順」の「○枚目のアルバム」で判断する。「○○より前／後のアルバム」などは参考のアルバム一覧で判断する。「アルバム未収録」の曲はどのアルバムにも入っていない（「いいえ」）。
 - 「○○より前／後に発表された」「○○と同じアルバム／シングル」など、ほかの曲と比べる質問は「参考：質問に出てくるほかの曲のデータ」と比べて判断する。初出日が同じなら「同時期」として、前後の質問には「いいえ」。
 - 質問の中に曲名やアルバム名が出てきても、「その曲が答えか」を直接聞いていなければ type は "question" にする。
 - 作詞・作曲・編曲者に関する質問はクレジットから判断する（共作の場合、名前が含まれていれば「はい」。「本人が作曲」は水樹奈々の名前が作曲欄にあるか）。クレジットが「不明」なら "わからない"。
