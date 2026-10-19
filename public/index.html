@@ -266,7 +266,8 @@ function rowEl(h, n){
   const li = document.createElement("li");
   const no = document.createElement("span"); no.className="no"; no.textContent = n ? pad(n) : "";
   const qt = document.createElement("span"); qt.className="qt"; qt.textContent = h.q;
-  if(h.comment){ const sm=document.createElement("small"); sm.textContent=h.comment; qt.append(sm); }
+  // 補足はサーバーが決めた定型文だけ表示（以前のゲームに残っているAIのコメントは出さない）
+  if(h.comment && /^歌詞についての質問には答えられません$/.test(h.comment)){ const sm=document.createElement("small"); sm.textContent=h.comment; qt.append(sm); }
   li.append(no, qt, badge(h.a)); return li;
 }
 function renderMode(){

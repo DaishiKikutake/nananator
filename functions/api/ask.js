@@ -41,14 +41,15 @@ export async function onRequestPost({ request, env }){
       const data = await res.json();
       const text = (data.content||[]).map(c=>c.text||"").join("");
       r = parseJudge(text);
-      if(!r) detail = `unparsable (${data.stop_reason||"?"}): ${text.slice(0,80)}`;
+      if(!r) detail = `unparsable (${data.stop_reason||"?"})`;   // 返答本文は答えが混ざる恐れがあるので返さない
     }catch(e){ detail = String(e).slice(0,80); }
   }
   if(!r) return json({error:"upstream", detail}, 502);
 
   const type = String(r.type||"");
   const answer = ["はい","いいえ","わからない"].includes(r.answer) ? r.answer : "わからない";
-  const comment = typeof r.comment === "string" ? r.comment.slice(0, 40) : "";
+  // AIの補足コメントは曲名などの手がかりが混ざることがあるため、画面には一切出さない
+  const comment = "";
   if(type === "invalid") return json({kind:"invalid"});
   if(type === "guess"){
     return titleMatches(r.guessed_title||"", song) ? json({kind:"hit", answer:"正解！", song:songCard(song)}) : json({kind:"guess", answer:"いいえ"});
