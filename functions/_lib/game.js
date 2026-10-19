@@ -353,7 +353,22 @@ export function titleMatches(guessText, song){
   return [song.title,...song.aliases].some(t=>norm(t)===n);
 }
 
-const hasAnime = s => /アニメ|劇場版|OVA/.test(s.tie);
+// タイアップをアニメ作品かどうかで判定（「アニメロミックス」「animelo」などはアニメ作品ではないので除外）
+const ANIME_RE = /テレビアニメ|Webアニメ|OVA|劇場版|劇場上映版|アニメ映画/;
+const tieParts = s => s.tie.split(/、/).map(x=>x.trim()).filter(Boolean);
+const hasAnime = s => tieParts(s).some(p => ANIME_RE.test(p) && !/アニメロ|animelo/i.test(p));
+const hasGame = s => tieParts(s).some(p => /ゲーム|PS2|PSP|ニンテンドー|アプリ/.test(p) && !ANIME_RE.test(p));
+// AIに渡す「タイアップの種類」
+export function tieKinds(s){
+  if(!s.tie) return "なし";
+  const k = [];
+  if(hasAnime(s)) k.push("アニメ作品");
+  if(hasGame(s)) k.push("ゲーム");
+  if(tieParts(s).some(p => /CM|TV-CM|CF/.test(p))) k.push("CM");
+  if(tieParts(s).some(p => /テレビ(?!アニメ)|TBS|日本テレビ|テレビ朝日|テレビ東京|フジテレビ|NHK|TOKYO FM|ラジオ|ドラマ|番組|系『/.test(p) && !ANIME_RE.test(p))) k.push("テレビ・ラジオ番組・ドラマ");
+  if(tieParts(s).some(p => /映画|上映作品/.test(p) && !ANIME_RE.test(p))) k.push("映画・上映作品（アニメ作品かは不明）");
+  return k.length ? k.join("、") : "その他";
+}
 export const PRESETS = [
   ["2000年代（2000〜2009年）の曲ですか？", s=>s.year>=2000&&s.year<=2009],
   ["2010年代の曲ですか？", s=>s.year>=2010&&s.year<=2019],
@@ -362,7 +377,7 @@ export const PRESETS = [
   ["シングルのカップリング曲ですか？", s=>s.kind==="C"],
   ["アルバムで初めて発表された曲ですか？", s=>s.kind==="L"],
   ["アニメのタイアップがありますか？", hasAnime],
-  ["ゲームのタイアップがありますか？", s=>/ゲーム/.test(s.tie)],
+  ["ゲームのタイアップがありますか？", hasGame],
   ["何らかのタイアップがありますか？", s=>!!s.tie],
   ["『魔法少女リリカルなのは』シリーズの曲ですか？", s=>/なのは/.test(s.tie)],
   ["『戦姫絶唱シンフォギア』シリーズの曲ですか？", s=>/シンフォギア/.test(s.tie)],
@@ -449,7 +464,7 @@ export function parseJudge(text){
 }
 
 export function aiPrompt(q, s){
-  const data = {曲名:s.title, 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], 初出作品:s.release, タイアップ:s.tie||"なし（データ上）", アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
+  const data = {曲名:s.title, 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], 初出作品:s.release, タイアップ:s.tie||"なし（データ上）", タイアップの種類:tieKinds(s), アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
   return `あなたは「水樹奈々の楽曲当てゲーム」の審判です。プレーヤーは正解の曲を知らず、はい/いいえで答えられる質問をして曲を当てます。
 正解曲のデータ:
 ${JSON.stringify(data, null, 1)}
@@ -474,6 +489,7 @@ ${(()=>{ const m = mentionedSongs(q, s); return m.length ? "\n参考：質問に
   - 質問のライブが参考の一覧にあり「全公演収録」なのに、この曲が無ければ「いいえ」。
   - それ以外（映像に無い、一覧に無いライブ、日付や会場まで指定されていて一致しない等）は、ほかの公演で歌った可能性があるので "わからない"。
   - 「ライブで歌われたことがありますか」のように特定しない質問は、収録公演が1つでもあれば「はい」、無ければ "わからない"。
+- 「アニメのタイアップ」「アニメの主題歌」などアニメかどうかの質問は「タイアップの種類」に「アニメ作品」があるかで判断する。「アニメロミックス」「animelo」はアニメ作品ではない（配信サービス・イベント名）。
 - 「○枚目のアルバム」「○○より前／後のアルバム」などは参考のアルバム一覧で判断する。「アルバム未収録」の曲はどのアルバムにも入っていない（「いいえ」）。
 - 「○○より前／後に発表された」「○○と同じアルバム／シングル」など、ほかの曲と比べる質問は「参考：質問に出てくるほかの曲のデータ」と比べて判断する。初出日が同じなら「同時期」として、前後の質問には「いいえ」。
 - 質問の中に曲名やアルバム名が出てきても、「その曲が答えか」を直接聞いていなければ type は "question" にする。
@@ -537,7 +553,7 @@ export const HINT_AT = [5, 10, 12, 14];
 export function hintsFor(s, n){
   const decade = s.year < 2010 ? "2000年代" : s.year < 2020 ? "2010年代" : "2020年代";
   const tie = hasAnime(s) ? "アニメ（劇場版・OVAを含む）のタイアップ曲です"
-    : /ゲーム/.test(s.tie) ? "ゲームのタイアップ曲です"
+    : hasGame(s) ? "ゲームのタイアップ曲です"
     : s.tie ? "アニメ・ゲーム以外のタイアップ（番組・CMなど）があります"
     : "タイアップはありません";
   const coName = s.co.replace(/\s*[（(][^）)]*[）)]/g,"").trim();
