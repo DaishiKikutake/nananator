@@ -511,6 +511,38 @@ export function creditAnswer(q, s){
   return roles.every(has) ? "はい" : "いいえ";
 }
 
+// 「ゲームのタイアップがありますか？」「CMソングですか？」などをAIを通さず判定する
+// 作品名など、決まった言葉以外が含まれる質問はAIに任せる
+const TIE_CATS = [
+  ["アニメ", /アニメ(?!ロ)/, s=>hasAnime(s)],
+  ["ゲーム", /ゲーム|アプリ/, s=>hasGame(s)],
+  ["CM", /CM|ＣＭ|コマーシャル/i, s=>tieParts(s).some(p=>/CM|CF/.test(p))],
+  ["ドラマ", /ドラマ/, s=>tieParts(s).some(p=>/ドラマ/.test(p))],
+  ["映画", /映画|劇場/, s=>tieParts(s).some(p=>/映画|劇場|上映/.test(p))],
+  ["ラジオ", /ラジオ/, s=>tieParts(s).some(p=>/ラジオ|FM/.test(p))],
+  ["テレビ番組", /テレビ番組|TV番組|番組/i, s=>tieParts(s).some(p=>/テレビ(?!アニメ)|TBS|日本テレビ|テレビ朝日|テレビ東京|フジテレビ|NHK|番組|系『|テレビ大阪/.test(p) && !ANIME_RE.test(p) && !/ラジオ|FM/.test(p))],
+];
+const TIE_ROLES = [["オープニング",/オープニング|OP/i],["エンディング",/エンディング|ED/i],["挿入歌",/挿入歌/],["主題歌",/主題歌|オープニング|エンディング|OP|ED|テーマ/i]];   // 主題歌はOP・ED・テーマソングも含む（挿入歌は含まない）
+export function tieAnswer(q, s){
+  let t = String(q).normalize("NFKC").replace(/\s+/g,"");
+  if(!/タイアップ|主題歌|テーマ|挿入歌|オープニング|エンディング|CM|ソング|使われ|使用|起用/i.test(t)) return null;
+  if(/ない|以外|ではな|じゃな|または|それとも|かつ|両方|複数|歌番組|音楽番組/.test(t)) return null;
+  const cats = TIE_CATS.filter(([,re])=>re.test(t));
+  const roles = TIE_ROLES.filter(([,re])=>re.test(t));
+  // 決まった言葉を取り除いて、何も残らなければ判定できる質問
+  let rest = t;
+  for(const [,re] of [...TIE_CATS, ...TIE_ROLES]) rest = rest.replace(new RegExp(re.source,"gi"),"");
+  rest = rest.replace(/版|何らかの|なにかの|何かの|何らか|いずれかの|テレビ|TV|作品|系|タイアップ曲|タイアップ|テーマソング|テーマ曲|テーマ|ソング|楽曲|曲|使われ(た|てい|て)?|使用(され)?(た|てい|て)?|起用(され)?(た|てい|て)?|ついて|付いて|ついている|付いている|がありますか|ありますか|あります|がある|ある|あり|います|いる|ました|ですか|ますか|でしょうか|でした|です|だった|ですね|になった|になって|になりましたか|になりました|された|されて|した|して|ている|てい|この|これ|それ|の|に|で|が|は|を|と|も|か|や|へ|として|[?？!！。、・「」『』()（）]/gi,"");
+  if(rest.length) return null;
+  const tieOk = (f) => roles.length ? tieParts(s).some(p=>f({...s, tie:p}) && roles.every(([,re])=>re.test(p))) : f(s);
+  if(!cats.length){
+    if(!s.tie) return "いいえ";
+    if(!roles.length) return "はい";   // 「何らかのタイアップがありますか？」
+    return tieParts(s).some(p=>roles.every(([,re])=>re.test(p))) ? "はい" : "いいえ";
+  }
+  return cats.every(([, , f])=>tieOk(f)) ? "はい" : "いいえ";
+}
+
 // 曲名の文字種（1文字ずつ分類する）
 //  ひらがな：ぁ〜ゖ、ゝゞ　カタカナ：ァ〜ヺ、ヽヾ、ヶ（半角ｶﾅも含む）
 //  漢字：CJK統合漢字と「々」「〆」（漢数字も漢字）　アルファベット：A〜Z・a〜z（全角も含む）　数字：0〜9（全角も含む）

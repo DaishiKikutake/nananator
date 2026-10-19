@@ -1,4 +1,4 @@
-import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, creditAnswer, aiRequestBody, songCard, json, rateLimited, AI_PER_MINUTE, DAILY_ASK_LIMIT } from "../_lib/game.js";
+import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, creditAnswer, tieAnswer, aiRequestBody, songCard, json, rateLimited, AI_PER_MINUTE, DAILY_ASK_LIMIT } from "../_lib/game.js";
 
 // 質問を判定する。曲名だけの回答と質問例はサーバー内で判定し、それ以外はClaudeに問い合わせる
 export async function onRequestPost({ request, env }){
@@ -25,6 +25,9 @@ export async function onRequestPost({ request, env }){
   // 作詞・作曲・編曲者の質問もデータから判定
   const ca = creditAnswer(q, song);
   if(ca) return json({kind:"question", answer:ca});
+  // タイアップの種類（アニメ・ゲーム・CMなど）もデータから判定
+  const tia = tieAnswer(q, song);
+  if(tia) return json({kind:"question", answer:tia});
   const ta = trackAnswer(q, song);
   if(ta) return json({kind:"question", answer:ta});
   const aa = albumNoAnswer(q, song);
