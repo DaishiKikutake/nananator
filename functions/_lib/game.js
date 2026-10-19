@@ -63,7 +63,7 @@ Tears' Night|tears night|2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||ゆう�
 Independent Love Song||2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||水樹奈々|大平勉|大平勉|ALIVE & KICKING:7
 Take a shot||2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||矢吹俊郎|矢吹俊郎|矢吹俊郎|ALIVE & KICKING:8
 JUMP!|jump|2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||水樹奈々|飯田高広|飯田高広|ALIVE & KICKING:10
-cherish||2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||矢吹俊郎|矢吹俊郎|矢吹俊郎|ALIVE & KICKING:11
+cherish||2004-04-07|C|パノラマ -Panorama-||ALIVE & KICKING||矢吹俊郎|矢吹俊郎|矢吹俊郎|ALIVE & KICKING:11
 It's in the bag|its in the bag|2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||矢吹俊郎|北島健二|大平勉|ALIVE & KICKING:12
 Abilities||2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||矢吹俊郎|矢吹俊郎|矢吹俊郎|ALIVE & KICKING:13
 M・A・M・A|MAMA;ママ|2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||NAOKO|大平勉|大平勉|ALIVE & KICKING:14
@@ -327,6 +327,7 @@ export const SONGS = RAW.trim().split("\n").map((l,i)=>{
   return {id:i,title,aliases:al?al.split(";"):[],date,year:+date.slice(0,4),kind,release,tie:tie||"",album:album||"",note:note||"",ly:ly||"",co:co||"",ar:ar||"",tracks};
 });
 const isBest = a => /THE MUSEUM/.test(a);
+
 // オリジナルアルバムの枚数（EP・ベストアルバムは数えない）
 const ORIGINAL_ALBUMS = ["supersonic girl","MAGIC ATTRACTION","DREAM SKIPPER","ALIVE & KICKING","HYBRID UNIVERSE","GREAT ACTIVITY","ULTIMATE DIAMOND","IMPACT EXCITER","ROCKBOUND NEIGHBORS","SUPERNAL LIBERTY","SMASHING ANTHEMS","NEOGENE CREATION","CANNONBALL RUNNING","DELIGHTED REVIVER","CONTEMPORARY EMOTION"];
 const albumNo = a => ORIGINAL_ALBUMS.indexOf(a) + 1;   // 0 = オリジナルアルバムではない
@@ -383,6 +384,98 @@ const KOUHAKU = {
 export const kouhakuFor = s => KOUHAKU[s.title] || [];
 // シングル曲＝シングル（配信・EP・共演シングルを含む）の表題曲とカップリング曲の両方
 export const isSingleSong = s => "ACDX".includes(s.kind);
+
+// シングル（CD・EP・配信）の曲順。公式サイトのディスコグラフィーより（off vocal・without NANAは除く）
+// 3つ目の値が0のものは全曲数が不明。『ALL FOR LOVE/DAYBREAKERS』は曲順が確認できないため載せない
+const SINGLE_TRACKS = [
+  ["想い",["想い", "アノネ～まみむめ☆もがちょ～", "ピアス"]],
+  ["Heaven Knows",["Heaven Knows", "Look Away"]],
+  ["The place of happiness",["The place of happiness", "水中の青空", "LOOKING ON THE MOON"]],
+  ["LOVE＆HISTORY",["LOVE＆HISTORY", "Summer Sweet"]],
+  ["POWER GATE",["POWER GATE", "おんなになあれ"]],
+  ["suddenly ～巡り合えて～/Brilliant Star",["suddenly ～巡り合えて～", "Brilliant Star"]],
+  ["New Sensation",["New Sensation", "リプレイマシン-custom-", "HONEY FLOWER"]],
+  ["still in the groove",["still in the groove", "refrain", "恋してる．．．"]],
+  ["パノラマ-Panorama-",["パノラマ-Panorama-", "cherish", "Heartbeat"]],
+  ["innocent starter",["innocent starter", "Open Your Heart", "それでも君を想い出すから-again-"]],
+  ["WILD EYES",["WILD EYES", "ヒメムラサキ", "76th Star", "「好き！」"]],
+  ["ETERNAL BLAZE",["ETERNAL BLAZE", "RUSH＆DASH!", "Inside of mind"]],
+  ["SUPER GENERATION",["SUPER GENERATION", "BRAVE PHOENIX", "光"]],
+  ["Justice to Believe / アオイイロ",["Justice to Believe", "アオイイロ"]],
+  ["SECRET AMBITION",["SECRET AMBITION", "Heart-shaped chant", "Level Hi！"]],
+  ["MASSIVE WONDERS",["MASSIVE WONDERS", "Happy Dive", "Pray"]],
+  ["STARCAMP EP",["Astrogation", "COSMIC LOVE", "Dancing in the velvet moon", "空時計"]],
+  ["Trickster",["Trickster", "DISCOTHEQUE", "Trinity Cross"]],
+  ["深愛",["深愛", "PRIDE OF GLORY", "午前0時のBaby Doll"]],
+  ["夢幻",["夢幻", "天空のカナリア", "Dear Dream", "STORIES"]],
+  ["PHANTOM MINDS",["PHANTOM MINDS", "Don't be long", "Song Communication", "十字架のスプレッド"]],
+  ["Silent Bible",["Silent Bible", "Polaris", "UNCHAIN∞WORLD", "undercover"]],
+  ["SCARLET KNIGHT",["SCARLET KNIGHT", "HIGH-STEPPER"]],
+  ["POP MASTER",["POP MASTER", "UNBREAKABLE"]],
+  ["純潔パラドックス",["純潔パラドックス", "7COLORS", "Stay Gold"]],
+  ["Synchrogazer",["Synchrogazer", "Love Brick", "理想論"]],
+  ["TIME SPACE EP",["METRO BAROQUE", "PARTY! PARTY!", "時空サファイア", "ONE"]],
+  ["BRIGHT STREAM",["BRIGHT STREAM", "FEARLESS HERO", "Sacred Force"]],
+  ["Vitalization",["Vitalization", "愛の星", "ドラマティックラブ"]],
+  ["禁断のレジスタンス",["禁断のレジスタンス", "BLUE", "ドリームライダー"]],
+  ["エデン",["エデン", "No Limit", "終末のラブソング", "Necessary"]],
+  ["Angel Blossom",["Angel Blossom", "レイジーシンドローム", "あしたgraffiti"]],
+  ["Exterminate",["Exterminate", "ブランブル", "It's Only Brave"]],
+  ["STARTING NOW！",["STARTING NOW！", "アンティフォーナ", "恋想花火"]],
+  ["Destiny's Prelude",["Destiny's Prelude", "Invisible Heat", "Poison Lily"]],
+  ["TESTAMENT",["TESTAMENT", "ACROSS", "ファンタズム"]],
+  ["WONDER QUEST EP",["WHAT YOU WANT", "結界", "Birth of Legend", "Hungry Hungry"]],
+  ["NEVER SURRENDER",["NEVER SURRENDER", "GET BACK", "サーチライト", "嘆きの華"]],
+  ["METANOIA",["METANOIA", "Born Free", "SUMMER PIRATES"]],
+  ["FIRE SCREAM / No Rain, No Rainbow",["FIRE SCREAM", "No Rain, No Rainbow"]],
+  ["Get up! Shout!",["Get up! Shout!", "Phase 21", "花、星、空 -reunion-"]],
+  ["ADRENALIZED",["ADRENALIZED", "sympathy", "優しい記憶"]],
+  ["CRIMSON BULLET",["CRIMSON BULLET", "Friday Night Fever", "アイロニカル"]],
+  ["暁の星",["暁の星", "Anchor Flame", "カレイドスコープ"]],
+  ["BLUE ROSE",["BLUE ROSE"]],
+  ["REBELLION",["REBELLION"]],
+  ["FINAL COMMANDER",["FINAL COMMANDER"]],
+  ["Link or Chains",["Link or Chains"]],
+  ["Red Breeze",["Red Breeze"]],
+  ["ダブルシャッフル",["ダブルシャッフル"]],
+  ["Sugar Doughnuts",["Sugar Doughnuts"]],
+  ["Turn the World",["Turn the World"]],
+  // 公式サイトのディスコグラフィーに曲目が載っていないもの（表題曲・1曲のみの配信シングルは1曲目）
+  ["Preserved Roses",["Preserved Roses"],0],["革命デュアリズム",["革命デュアリズム"],0],
+  ["スパイラル",["スパイラル"]],["Go Live!",["Go Live!"]],["Electric Trick",["Electric Trick"]],
+];
+const SINGLE_BY_SONG = new Map();
+for(const [rel, list, total] of SINGLE_TRACKS) list.forEach((t,i)=>{ const s = SONGS.find(x=>[x.title,...x.aliases].some(a=>norm(a)===norm(t))); if(s) SINGLE_BY_SONG.set(s.id, {single:rel, no:i+1, total: total===0 ? 0 : list.length}); });
+export const singleTrackFor = s => SINGLE_BY_SONG.get(s.id) || null;
+const singleText = s => { const t = singleTrackFor(s); if(t) return `シングル『${t.single}』の${t.no}曲目${t.total?`（全${t.total}曲）`:""}`; return isSingleSong(s) ? "シングルでの曲順は不明" : "シングルには収録されていない"; };
+
+// 「シングルの3曲目ですか？」「ULTIMATE DIAMONDの12曲目？」などをAIを通さず判定する
+const NUM_KANJI = {一:1,二:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9,十:10,十一:11,十二:12,十三:13,十四:14,十五:15,十六:16,十七:17,十八:18,十九:19,二十:20};
+export function trackAnswer(q, s){
+  let t = String(q).normalize("NFKC").replace(/\s+/g,"");
+  t = t.replace(/(二十|十[一二三四五六七八九]?|[一二三四五六七八九])(曲目|枚目)/g, (m,k,u)=>NUM_KANJI[k]+u);
+  const ns = [...t.matchAll(/(\d+)曲目/g)].map(m=>+m[1]);
+  if(ns.length !== 1) return null;
+  // 範囲・比較・ほかの条件が混ざる質問はAIに任せる
+  if(/番目|以外|より|以上|以下|以内|未満|まで|偶数|奇数|または|それとも|か、|最後|ラスト|前半|後半|かつ|ライブ|セトリ|公演|ではない|じゃない/.test(t)) return null;
+  const n = ns[0], nt = norm(t), st = singleTrackFor(s);
+  const m = t.match(/(\d+)枚目/);
+  const longest = arr => arr.sort((a,b)=>norm(b).length-norm(a).length)[0];
+  const albumName = longest(ALBUMS.map(a=>a[0]).filter(a=>nt.includes(norm(a))));
+  const singleName = longest(SINGLE_TRACKS.flatMap(([r])=>[r, ...r.split(/\s*\/\s*/)]).filter(r=>norm(r).length>=3 && nt.includes(norm(r))));
+  const inAlbum = f => s.tracks.some(x=>f(x) && x.no===n);
+  const inSingle = () => { if(st) return st.no===n; if(isSingleSong(s)) return null; return false; };
+  let ok;
+  if(albumName && (!singleName || norm(albumName).length >= norm(singleName).length) && !/シングル|EP/i.test(t.replace(/supersonicgirl/i,""))) ok = inAlbum(x=>x.album===albumName);
+  else if(singleName) ok = st ? (norm(st.single).includes(norm(singleName)) && st.no===n) : (isSingleSong(s) && norm(s.release).includes(norm(singleName)) ? null : false);
+  else if(m) ok = inAlbum(x=>albumNo(x.album)===+m[1]);
+  else if(/シングル|EP|カップリング/i.test(t)) ok = inSingle();
+  else if(/オリジナル/.test(t)) ok = inAlbum(x=>!isBest(x.album));
+  else if(/ベスト|MUSEUM/i.test(t)) ok = inAlbum(x=>isBest(x.album));
+  else if(/アルバム/.test(t)) ok = inAlbum(()=>true);
+  else { const a = inAlbum(()=>true), b = inSingle(); ok = a || b ? true : (b===null ? null : false); }
+  return ok===null || ok===undefined ? null : (ok ? "はい" : "いいえ");
+}
 
 // 曲名の文字種（1文字ずつ分類する）
 //  ひらがな：ぁ〜ゖ、ゝゞ　カタカナ：ァ〜ヺ、ヽヾ、ヶ（半角ｶﾅも含む）
@@ -468,7 +561,10 @@ export const presetAnswer = (q, song) => { const f = PRESET_MAP.get(norm(q)); re
 
 // 答え表示用（正解・GiveUp時のみブラウザへ返す）
 export function songCard(s){
-  const rows = [["初出", `${s.date.replace(/-/g,".")}　${s.release}（${KIND[s.kind]}）`], ["タイアップ", s.tie||"なし（データ上）"], ["アルバム収録", trackText(s)]];
+  const rows = [["初出", `${s.date.replace(/-/g,".")}　${s.release}（${KIND[s.kind]}）`], ["タイアップ", s.tie||"なし（データ上）"]];
+  const st = singleTrackFor(s);
+  if(st) rows.push(["シングル収録", `『${st.single}』${st.no}曲目`]);
+  rows.push(["アルバム収録", trackText(s)]);
   const cr=[s.ly&&"作詞："+s.ly, s.co&&"作曲："+s.co, s.ar&&"編曲："+s.ar].filter(Boolean).join("　");
   if(cr) rows.push(["クレジット", cr]);
   if(kouhakuFor(s).length) rows.push(["NHK紅白歌合戦", kouhakuFor(s).join("、")]);
@@ -560,7 +656,7 @@ export function parseJudge(text){
 }
 
 export function aiPrompt(q, s){
-  const data = {曲名:s.title, 曲名の文字種:`${titleKinds(s.title).join("・")}（それ以外の文字種は含まない）`, 曲名の文字:titleChars(s.title).map(([c,k])=>c+"="+k).join(" "), 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], シングル曲:isSingleSong(s)?`はい（シングル「${s.release}」の${s.kind==="C"?"カップリング曲":"表題曲"}）`:"いいえ（シングルには収録されていない）", 初出作品:s.release, NHK紅白歌合戦での歌唱:kouhakuFor(s).length?kouhakuFor(s):"なし", タイアップ:s.tie||"なし（データ上）", タイアップの種類:tieKinds(s), アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
+  const data = {曲名:s.title, 曲名の文字種:`${titleKinds(s.title).join("・")}（それ以外の文字種は含まない）`, 曲名の文字:titleChars(s.title).map(([c,k])=>c+"="+k).join(" "), 別名:s.aliases, 初出日:s.date, 年:s.year, 種別:KIND[s.kind], シングルでの曲順:singleText(s), シングル曲:isSingleSong(s)?`はい（シングル「${s.release}」の${s.kind==="C"?"カップリング曲":"表題曲"}）`:"いいえ（シングルには収録されていない）", 初出作品:s.release, NHK紅白歌合戦での歌唱:kouhakuFor(s).length?kouhakuFor(s):"なし", タイアップ:s.tie||"なし（データ上）", タイアップの種類:tieKinds(s), アルバム収録と曲順:trackText(s), 作詞:s.ly||"不明", 作曲:s.co||"不明", 編曲:s.ar||"不明", 備考:s.note||"なし", 公式ライブ映像に収録されている公演:livesFor(s).length?livesFor(s):"なし"};
   return `あなたは「水樹奈々の楽曲当てゲーム」の審判です。プレーヤーは正解の曲を知らず、はい/いいえで答えられる質問をして曲を当てます。
 正解曲のデータ:
 ${JSON.stringify(data, null, 1)}
@@ -579,7 +675,7 @@ ${(()=>{ const m = mentionedSongs(q, s); return m.length ? "\n参考：質問に
 - データから判断できないことは必ず "わからない" にする。特に、歌詞の内容・言葉、曲調・テンポ・ジャンル（バラード等）、ライブでの扱い、MVの有無、売上・順位、歌唱方法などはデータにないので "わからない"。
 - データから言い換えや計算で確実に導けること（曲名の文字、発売年、アルバム、作曲者、タイアップ作品の種類など）は答えてよい。
 - 曲名の文字・表記・長さに関する質問は曲名から判断する。ひらがな・カタカナ・漢字などの文字種は必ず「曲名の文字種」「曲名の文字」の分類に従う（自分で判断しない）。発売年や年代は初出日から判断する。
-- アルバムや曲順に関する質問は「アルバム収録と曲順」から判断する（『THE MUSEUM』シリーズはベストアルバム、それ以外はオリジナルアルバム）。
+- シングル（EP・配信シングルを含む）の曲順は「シングルでの曲順」から判断する。アルバムや曲順に関する質問は「アルバム収録と曲順」から判断する（『THE MUSEUM』シリーズはベストアルバム、それ以外はオリジナルアルバム）。
 - ライブでの演奏に関する質問は「公式ライブ映像に収録されている公演」だけで判断する。
   - 質問のライブ（ツアー名だけでも可。例：「LIVE PARADE」）に、この曲が収録されている公演が1つでもあれば「はい」。「LIVE FLIGHT」のように＋（海外公演）を付けずに聞かれた場合は、＋の公演も含めて判断する。
   - 質問のライブが参考の一覧にあり「全公演収録」なのに、この曲が無ければ「いいえ」。
