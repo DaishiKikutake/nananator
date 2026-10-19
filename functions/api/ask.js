@@ -1,8 +1,9 @@
-import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, aiPrompt, songCard, json, rateLimited } from "../_lib/game.js";
+import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, aiPrompt, songCard, json, rateLimited, AI_PER_MINUTE } from "../_lib/game.js";
 
 // 質問を判定する。曲名だけの回答と質問例はサーバー内で判定し、それ以外はClaudeに問い合わせる
 export async function onRequestPost({ request, env }){
-  if(rateLimited(request)) return json({error:"rate_limited"}, 429);
+  // 連打・大量アクセス対策（AIを使わない質問も含めた全体の上限。普通に遊ぶ分には届かない）
+  if(rateLimited(request, 60, "ask")) return json({error:"rate_limited"}, 429);
   const body = await request.json().catch(()=>({}));
   const q = String(body.q || "").trim().slice(0, 100);
   if(!q) return json({error:"empty"}, 400);
@@ -32,6 +33,8 @@ export async function onRequestPost({ request, env }){
 
   // 3) 自由入力（Claude）。読み取れない返答だったときは1回だけやり直す
   if(!env.ANTHROPIC_API_KEY) return json({error:"ai_unavailable"}, 503);
+  // AIに問い合わせる自由入力だけを数える（質問例・曲名・サーバー側で答えられる質問は数えない）
+  if(rateLimited(request, AI_PER_MINUTE, "ai")) return json({error:"ai_rate_limited"}, 429);
   let r = null, detail = "";
   for(let attempt=0; attempt<2 && !r; attempt++){
     try{

@@ -19,7 +19,7 @@ export class VisitCounter extends DurableObject {
 }
 
 async function visit({ request, env }) {
-  if (rateLimited(request, 30)) return json({ error: "rate_limited" }, 429);
+  if (rateLimited(request, 30, "visit")) return json({ error: "rate_limited" }, 429);
   const stub = env.COUNTER.get(env.COUNTER.idFromName("global"));
   return json({ n: await stub.increment() });
 }

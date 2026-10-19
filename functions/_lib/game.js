@@ -727,15 +727,21 @@ export async function readToken(token, secret){
 export const json = (obj, status=200) => new Response(JSON.stringify(obj), {status, headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 
 // 簡易レート制限（同じIPから1分間に20回まで。サーバーのインスタンスごとの目安）
-const hits = new Map();
-export function rateLimited(request, max=20){
+// IPごとの回数制限。用途（bucket）ごとに別々に数える
+// ※記録はCloudflareのサーバーごとのメモリにあるため、確実な上限ではなく簡易ないたずら対策
+const hitsByBucket = new Map();
+export function rateLimited(request, max=20, bucket="default", windowMs=60000){
   const ip = request.headers.get("cf-connecting-ip") || "local";
-  const now = Date.now(), w = 60000;
-  const arr = (hits.get(ip)||[]).filter(t=>now-t<w);
+  if(!hitsByBucket.has(bucket)) hitsByBucket.set(bucket, new Map());
+  const hits = hitsByBucket.get(bucket);
+  const now = Date.now();
+  const arr = (hits.get(ip)||[]).filter(t=>now-t<windowMs);
+  if(arr.length >= max){ hits.set(ip, arr); return true; }   // 断った分は数えない
   arr.push(now); hits.set(ip, arr);
   if(hits.size > 5000) hits.clear();
-  return arr.length > max;
+  return false;
 }
+export const AI_PER_MINUTE = 7;   // AIに問い合わせる自由入力：1分間に7回まで
 
 // ---- モード ----
 // マスター：全曲から出題。スタンダード：ベスト盤『THE MUSEUM』シリーズ収録曲から出題、ヒントと最後の4択あり。
