@@ -431,7 +431,7 @@ $("askForm").addEventListener("submit", e=>{ e.preventDefault(); ask($("q").valu
 $("giveBtn").onclick = ()=>{ $("confirm").hidden=false; };
 $("giveNo").onclick = ()=>{ $("confirm").hidden=true; };
 $("giveYes").onclick = ()=>{ $("confirm").hidden=true; reveal("lose"); };
-$("againBtn").onclick = ()=>{ newGame(); window.scrollTo({top:0}); };
+$("againBtn").onclick = ()=>{ newGame(); loadVisitor(); window.scrollTo({top:0}); };
 const normT = s => String(s).normalize("NFKC").toLowerCase().replace(/[\s・☆★!！?？]/g,"");
 function renderSongs(){
   const m = state ? state.mode : savedMode();
@@ -450,11 +450,9 @@ fetch("/api/titles").then(r=>r.json()).then(d=>{ ALL_TITLES=d.titles||[]; STD_TI
 
 // 挑戦者数（同じブラウザのリロードでは数えない）
 function showVisitor(n){ const el=$("visitor"); el.innerHTML=`あなたは <b>${Number(n).toLocaleString("ja-JP")}</b> 人めの挑戦者です！`; el.hidden=false; }
-(async()=>{
-  let n=null; try{ n=sessionStorage.getItem("nananator_visit"); }catch(e){}
-  if(!n){ try{ const r=await api("/api/visit"); n=r.n; try{ sessionStorage.setItem("nananator_visit", n); }catch(e){} }catch(e){ return; } }
-  showVisitor(n);
-})();
+// 挑戦を終えた人数＋1を表示する（ページを開くたび・「もう一度遊ぶ」のたびに最新の数を読み直す。開いただけでは増えない）
+async function loadVisitor(){ try{ const r=await api("/api/visit"); showVisitor(r.n); }catch(e){} }
+loadVisitor();
 
 state = load();
 if(state && state.done && !state.song) reveal(state.done);

@@ -807,6 +807,16 @@ export async function readToken(token, secret){
   return g ? g.song : null;
 }
 
+// ゲーム終了を挑戦者数に数える（同じゲームは1回だけ。失敗してもゲームは止めない）
+export async function countFinish(env, token){
+  try{
+    if(!env.COUNTER) return;
+    const h = await crypto.subtle.digest("SHA-256", enc.encode(String(token)));
+    const key = b64u(h).slice(0, 22);
+    await env.COUNTER.get(env.COUNTER.idFromName("global")).finish(key);
+  }catch(e){}
+}
+
 export const json = (obj, status=200) => new Response(JSON.stringify(obj), {status, headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"}});
 
 // 簡易レート制限（同じIPから1分間に20回まで。サーバーのインスタンスごとの目安）
