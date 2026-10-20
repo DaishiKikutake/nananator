@@ -13,11 +13,17 @@ import { json, rateLimited } from "../functions/_lib/game.js";
 // 数えるのはゲームが終わったとき（正解・GiveUp・15問でゲームオーバー・4択で回答）。1ゲーム1回だけ
 export class VisitCounter extends DurableObject {
   async ready() {
-    // 2026-10-20：数え方を変更し、以前のカウント（ページを開いた回数）を消して0から数え直す
-    if ((await this.ctx.storage.get("v")) !== 2) {
-      await this.ctx.storage.deleteAll();
-      await this.ctx.storage.put({ v: 2, plays: 0 });
+    const v = await this.ctx.storage.get("v");
+    if (v === 3) return;
+    if (v === 2) {
+      // 2026-10-21：リセット前の挑戦者数を4000人とみなし、今の数に4000を足して続ける（1回だけ）
+      const n = (await this.ctx.storage.get("plays")) || 0;
+      await this.ctx.storage.put({ v: 3, plays: n + 4000 });
+      return;
     }
+    // 2026-10-20：数え方を変更し、以前のカウント（ページを開いた回数）を消して数え直す（4000から開始）
+    await this.ctx.storage.deleteAll();
+    await this.ctx.storage.put({ v: 3, plays: 4000 });
   }
   async plays() {
     await this.ready();
