@@ -1,4 +1,4 @@
-import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, creditAnswer, tieAnswer, aiRequestBody, songCard, json, countFinish, rateLimited, AI_PER_MINUTE, DAILY_ASK_LIMIT, pausedFor, noteResult } from "../_lib/game.js";
+import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, creditAnswer, tieAnswer, aiRequestBody, songCard, json, countPlay, rateLimited, AI_PER_MINUTE, DAILY_ASK_LIMIT, pausedFor, noteResult } from "../_lib/game.js";
 
 // 質問を判定する。曲名だけの回答と質問例はサーバー内で判定し、それ以外はClaudeに問い合わせる
 export async function onRequestPost({ request, env }){
@@ -13,12 +13,13 @@ export async function onRequestPost({ request, env }){
   const song = await readToken(body.token, env.GAME_SECRET);
   if(!song) return json({error:"bad_token"}, 400);
 
-  const done = (body, wasted=false) => { noteResult(request, wasted); return json(body); };
+  // 回答を返す。そのゲームで最初に回答を返したときに挑戦者数を1増やす（「質問にしてください」は数えない）
+  const done = async (res, wasted=false) => { noteResult(request, wasted); if(res.kind !== "invalid") await countPlay(env, body.token); return json(res); };
 
   // 1) 曲名だけの回答
   const gid = exactGuess(q);
   if(gid !== null){
-    if(gid === song.id){ await countFinish(env, body.token); return done({kind:"hit", answer:"正解！", song:songCard(song)}); }
+    if(gid === song.id){ return done({kind:"hit", answer:"正解！", song:songCard(song)}); }
     return done({kind:"guess", answer:"いいえ"});
   }
   // 2) 質問例
@@ -79,7 +80,7 @@ export async function onRequestPost({ request, env }){
   const comment = "";
   if(type === "invalid") return done({kind:"invalid"}, true);
   if(type === "guess"){
-    if(titleMatches(r.guessed_title||"", song)){ await countFinish(env, body.token); return done({kind:"hit", answer:"正解！", song:songCard(song)}); }
+    if(titleMatches(r.guessed_title||"", song)){ return done({kind:"hit", answer:"正解！", song:songCard(song)}); }
     return done({kind:"guess", answer:"いいえ"});
   }
   return done({kind: answer==="わからない" ? "unknown" : "question", answer, comment}, answer==="わからない");

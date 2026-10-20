@@ -818,13 +818,18 @@ export async function readToken(token, secret){
   return g ? g.song : null;
 }
 
-// ゲーム終了を挑戦者数に数える（同じゲームは1回だけ。失敗してもゲームは止めない）
-export async function countFinish(env, token){
+// 挑戦者数に数える：そのゲームで最初の質問に回答を返したとき（同じゲームは1回だけ。失敗してもゲームは止めない）
+// 同じサーバーで数え済みのゲームは、カウンターへの問い合わせ自体を省く
+const countedGames = new Set();
+export async function countPlay(env, token){
   try{
     if(!env.COUNTER) return;
     const h = await crypto.subtle.digest("SHA-256", enc.encode(String(token)));
     const key = b64u(h).slice(0, 22);
+    if(countedGames.has(key)) return;
     await env.COUNTER.get(env.COUNTER.idFromName("global")).finish(key);
+    countedGames.add(key);
+    if(countedGames.size > 20000) countedGames.clear();
   }catch(e){}
 }
 

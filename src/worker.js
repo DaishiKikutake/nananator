@@ -10,7 +10,7 @@ import * as apiFinal from "../functions/api/final.js";
 import { json, rateLimited } from "../functions/_lib/game.js";
 
 // 挑戦者数のカウンター（Durable Object。全体で1つだけ作る）
-// 数えるのはゲームが終わったとき（正解・GiveUp・15問でゲームオーバー・4択で回答）。1ゲーム1回だけ
+// 数えるのはそのゲームで最初の質問に回答を返したとき。1ゲーム1回だけ（finishは「数える」処理の名前）
 export class VisitCounter extends DurableObject {
   async ready() {
     const v = await this.ctx.storage.get("v");
@@ -45,7 +45,7 @@ export class VisitCounter extends DurableObject {
   }
 }
 
-// ページ上部の「あなたは○人めの挑戦者です！」用：挑戦を終えた人数＋1（見るだけでは増えない）
+// ページ上部の「あなたは○人めの挑戦者です！」用：挑戦した人数＋1（見るだけでは増えない）
 async function visit({ request, env }) {
   if (rateLimited(request, 30, "visit")) return json({ error: "rate_limited" }, 429);
   const stub = env.COUNTER.get(env.COUNTER.idFromName("global"));
