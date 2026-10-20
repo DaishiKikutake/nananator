@@ -129,7 +129,10 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
 .choices{display:grid;grid-template-columns:1fr;gap:8px}
 .choice{text-align:left;background:var(--surface-2);color:var(--ink);border:1.5px solid var(--line);font-size:16px;overflow-wrap:anywhere}
 .choice:hover:not(:disabled){border-color:var(--accent)}
+.ts{display:flex;justify-content:center;margin:6px 0}
+.ts:empty{margin:0}
 </style>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -166,6 +169,7 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
       <button class="primary" id="askBtn" type="submit">質問する</button>
     </form>
     <div class="status" id="status" role="status"></div>
+    <div id="ts" class="ts"></div>
     <div class="row">
       <span class="status" id="mode">自由入力の質問はAIが判定します</span>
       <button class="ghost" id="giveBtn" type="button">GiveUp</button>
@@ -244,15 +248,37 @@ async function api(path, body){
   if(!res.ok) throw data;
   return data;
 }
+// Cloudflare Turnstile（人間確認）。ゲーム開始のたびに使い捨ての証明を受け取る
+// 普段は何も表示されず、怪しいと判断されたときだけチェックボックスが出る
+const TS_SITEKEY = "0x4AAAAAAFdk0nGdG8_LnrBK";
+let tsWidget = null, tsWait = null;
+function tsReady(){ return new Promise((ok, ng)=>{ let n=0; const t=setInterval(()=>{ if(window.turnstile){ clearInterval(t); ok(); } else if(++n>100){ clearInterval(t); ng(new Error("ts_load")); } }, 100); }); }
+async function turnstileToken(){
+  await tsReady();
+  return new Promise((ok, ng)=>{
+    tsWait = {ok, ng};
+    const done = f => (v)=>{ const w=tsWait; tsWait=null; if(w) f===1 ? w.ok(v) : w.ng(new Error("ts_fail")); };
+    if(tsWidget===null){
+      tsWidget = turnstile.render("#ts", { sitekey:TS_SITEKEY, action:"new-game", appearance:"interaction-only", execution:"execute",
+        callback: v=>done(1)(v), "error-callback": ()=>{ done(0)(); return true; }, "timeout-callback": ()=>done(0)(), "expired-callback": ()=>{} });
+    } else { turnstile.reset(tsWidget); }
+    turnstile.execute(tsWidget);
+  });
+}
+
 async function newGame(mode){
   mode = mode || (state && state.mode) || savedMode();
   try{ localStorage.setItem("nananator_mode", mode); }catch(e){}
   setStatus("準備中…");
   try{
-    const {token} = await api("/api/new", {mode});
+    let ts = "";
+    try{ ts = await turnstileToken(); }catch(e){ ts = ""; }   // 読み込めないときはサーバー側の判断に任せる
+    const {token} = await api("/api/new", {mode, ts});
     state = {token, mode, hist:[], done:null, song:null, hints:[], choices:null};
     save(); render(); $("q").value=""; setStatus("");
-  }catch(e){ setStatus("ゲームを開始できませんでした。少し待ってから再読み込みしてください。", true); }
+  }catch(e){
+    setStatus(e && e.error==="human_check" ? "人間であることの確認ができませんでした。表示されたチェックボックスを押すか、再読み込みしてもう一度お試しください。" : "ゲームを開始できませんでした。少し待ってから再読み込みしてください。", true);
+  }
 }
 const isCounted = h => h.counted || (h.kind!=="invalid" && h.kind!=="unknown");
 const counted = () => state.hist.filter(isCounted).length;
