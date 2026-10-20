@@ -487,13 +487,19 @@ const SURNAMES = (()=>{ const m = new Map(); for(const n of CREDIT_NAMES){ if(/^
 const EG_RE = /上松範康|藤間仁|藤田淳平|菊田大介|中山真斗|母里治樹|藤永龍太郎|Elements Garden/i;
 export function creditAnswer(q, s){
   const t = String(q).normalize("NFKC").replace(/\s+/g,"");
-  const roles = [];
+  let roles = [];
   if(/作詞/.test(t)) roles.push("ly");
   if(/作曲/.test(t)) roles.push("co");
   if(/編曲|アレンジ/.test(t)) roles.push("ar");
+  // 役割を言わずに「関わった」「手がけた」などと聞かれたら、作詞・作曲・編曲のどれか
+  // 「○○さんの曲？」も、本人以外の作家名なら作詞・作曲・編曲のどれかとして扱う
+  const anyRole = !roles.length && (/関わ|携わ|手がけ|手掛け|クレジット|作った|書いた|提供/.test(t) || (/の曲|の楽曲|さん曲/.test(t) && !/本人|水樹|奈々|ななさん|ナナさん/.test(t)));
+  if(anyRole) roles = ["ly","co","ar"];
   if(!roles.length) return null;
-  // 否定・共作・ほかの条件が混ざる質問はAIに任せる
-  if(/以外|ではない|じゃない|でない|共作|共同|単独|ひとりで|1人で|一人で|だけで|または|それとも|かつ|ほかの人|他の人|複数|何人|曲名|タイトル|年|アルバム|シングル|アニメ|ゲーム|タイアップ|ライブ/.test(t)) return null;
+  // 否定・ほかの条件が混ざる質問はAIに任せる
+  if(/以外|ではない|じゃない|でない|ないですか|共作|共同|単独|ひとりで|1人で|一人で|だけで|だけが|のみ|それとも|かつ|ほかの人|他の人|複数|何人|曲名|タイトル|年|アルバム|シングル|アニメ|ゲーム|タイアップ|ライブ/.test(t)) return null;
+  // 複数の役割を挙げたとき：「AかB」「AまたはB」「どちらか」→どれか1つ、「AとB」「A・B」「両方」「とも」→全部
+  const or = anyRole || (roles.length>1 && (/(作詞|作曲|編曲)(か|または|もしくは|や|あるいは|or)/i.test(t) || /どちらか|どれか|いずれか|どっちか/.test(t)));
   // 誰についての質問か
   let who = null, eg = false;
   if(/本人|水樹|奈々|ななさん|ナナさん/.test(t)) who = "水樹奈々";
@@ -506,8 +512,13 @@ export function creditAnswer(q, s){
   }
   if(!who && !eg) return null;
   const fields = {ly:s.ly, co:s.co, ar:s.ar};
-  if(roles.some(r=>!fields[r])) return null;   // クレジット不明はAIに任せる（「わからない」）
-  const has = r => eg ? EG_RE.test(fields[r]) : splitNames(fields[r]).some(n=>canonName(n)===canonName(who));
+  const has = r => !!fields[r] && (eg ? EG_RE.test(fields[r]) : splitNames(fields[r]).some(n=>canonName(n)===canonName(who)));
+  const unknown = roles.filter(r=>!fields[r]);
+  if(or){
+    if(roles.some(has)) return "はい";
+    return unknown.length ? null : "いいえ";   // 分かっている役割に無く、不明な役割があるならAIに任せる（わからない）
+  }
+  if(unknown.length) return null;
   return roles.every(has) ? "はい" : "いいえ";
 }
 
