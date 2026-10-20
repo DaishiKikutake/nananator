@@ -1,4 +1,4 @@
-import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, creditAnswer, tieAnswer, aiRequestBody, songCard, json, rateLimited, AI_PER_MINUTE, DAILY_ASK_LIMIT } from "../_lib/game.js";
+import { MODEL, parseJudge, unanswerableReason, readToken, exactGuess, titleMatches, presetAnswer, albumNoAnswer, scriptAnswer, trackAnswer, creditAnswer, tieAnswer, aiRequestBody, songCard, json, rateLimited, AI_PER_MINUTE, DAILY_ASK_LIMIT, pausedFor, noteResult } from "../_lib/game.js";
 
 // 質問を判定する。曲名だけの回答と質問例はサーバー内で判定し、それ以外はClaudeに問い合わせる
 export async function onRequestPost({ request, env }){
@@ -13,32 +13,38 @@ export async function onRequestPost({ request, env }){
   const song = await readToken(body.token, env.GAME_SECRET);
   if(!song) return json({error:"bad_token"}, 400);
 
+  const done = (body, wasted=false) => { noteResult(request, wasted); return json(body); };
+
   // 1) 曲名だけの回答
   const gid = exactGuess(q);
   if(gid !== null){
-    return gid === song.id ? json({kind:"hit", answer:"正解！", song:songCard(song)}) : json({kind:"guess", answer:"いいえ"});
+    return gid === song.id ? done({kind:"hit", answer:"正解！", song:songCard(song)}) : done({kind:"guess", answer:"いいえ"});
   }
   // 2) 質問例
   const pa = presetAnswer(q, song);
-  if(pa) return json({kind:"question", answer:pa});
+  if(pa) return done({kind:"question", answer:pa});
   // 「○枚目のアルバムより前／まで／以降」などはデータから機械的に判定
   // 作詞・作曲・編曲者の質問もデータから判定
   const ca = creditAnswer(q, song);
-  if(ca) return json({kind:"question", answer:ca});
+  if(ca) return done({kind:"question", answer:ca});
   // タイアップの種類（アニメ・ゲーム・CMなど）もデータから判定
   const tia = tieAnswer(q, song);
-  if(tia) return json({kind:"question", answer:tia});
+  if(tia) return done({kind:"question", answer:tia});
   const ta = trackAnswer(q, song);
-  if(ta) return json({kind:"question", answer:ta});
+  if(ta) return done({kind:"question", answer:ta});
   const aa = albumNoAnswer(q, song);
-  if(aa) return json({kind:"question", answer:aa});
+  if(aa) return done({kind:"question", answer:aa});
   // 曲名の文字種（ひらがな・カタカナ・漢字・アルファベット・数字・記号）もデータから判定
   const sa = scriptAnswer(q, song);
-  if(sa) return json({kind:"question", answer:sa});
+  if(sa) return done({kind:"question", answer:sa});
+
+  // 「わからない」「質問にしてください」が続いたIPは、しばらく自由入力を止める（質問例・曲名などは上で答え済み）
+  const wait = pausedFor(request);
+  if(wait) return json({error:"ai_paused", wait}, 429);
 
   // 歌詞の質問はデータが無く判定できないので、AIに送らず「わからない」（回数に数えない）
   const why = unanswerableReason(q);
-  if(why) return json({kind:"unknown", answer:"わからない", comment:why});
+  if(why) return done({kind:"unknown", answer:"わからない", comment:why}, true);
 
   // 3) 自由入力（Claude）。読み取れない返答だったときは1回だけやり直す
   if(!env.ANTHROPIC_API_KEY) return json({error:"ai_unavailable"}, 503);
@@ -70,9 +76,9 @@ export async function onRequestPost({ request, env }){
   const answer = ["はい","いいえ","わからない"].includes(r.answer) ? r.answer : "わからない";
   // AIの補足コメントは曲名などの手がかりが混ざることがあるため、画面には一切出さない
   const comment = "";
-  if(type === "invalid") return json({kind:"invalid"});
+  if(type === "invalid") return done({kind:"invalid"}, true);
   if(type === "guess"){
-    return titleMatches(r.guessed_title||"", song) ? json({kind:"hit", answer:"正解！", song:songCard(song)}) : json({kind:"guess", answer:"いいえ"});
+    return titleMatches(r.guessed_title||"", song) ? done({kind:"hit", answer:"正解！", song:songCard(song)}) : done({kind:"guess", answer:"いいえ"});
   }
-  return json({kind: answer==="わからない" ? "unknown" : "question", answer, comment});
+  return done({kind: answer==="わからない" ? "unknown" : "question", answer, comment}, answer==="わからない");
 }

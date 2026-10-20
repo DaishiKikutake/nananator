@@ -225,6 +225,7 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
 // ---------- 奈々ネーター（公開版クライアント） ----------
 // 正解の曲はサーバーが暗号化トークンで保持し、ブラウザには答えのデータを置かない。
 const LIMIT = 15;
+const FREE_LIMIT = 5;   // 「わからない」「質問にしてください」を回数に数えないのは1ゲーム5回まで
 const MODES = {
   standard: { name:"スタンダード", lead:"ベスト盤『THE MUSEUM』シリーズに収録された代表曲から1曲が選ばれました。はい／いいえで答えられる質問をして曲名を当ててください。5問ごとにヒントが出て、15問で当てられなくても最後に4択のチャンスがあります。" },
   master:   { name:"マスター", lead:"水樹奈々さんの全楽曲から1曲が選ばれました。はい／いいえで答えられる質問をして、15問以内に曲名を当ててください。ヒントはありません。" },
@@ -253,7 +254,7 @@ async function newGame(mode){
     save(); render(); $("q").value=""; setStatus("");
   }catch(e){ setStatus("ゲームを開始できませんでした。少し待ってから再読み込みしてください。", true); }
 }
-const isCounted = h => h.kind!=="invalid" && h.kind!=="unknown";
+const isCounted = h => h.counted || (h.kind!=="invalid" && h.kind!=="unknown");
 const counted = () => state.hist.filter(isCounted).length;
 function numbered(){ let n=0; return state.hist.map(h=>({h, n: isCounted(h) ? ++n : null})); }
 
@@ -353,8 +354,8 @@ async function pickFinal(t){
   catch(e){ document.querySelectorAll(".choice").forEach(b=>b.disabled=false); }
   finally{ busy=false; }
 }
-function record(q, a, kind, comment){
-  state.hist.push({q, a, kind, comment:comment||""});
+function record(q, a, kind, comment, isCountedFree){
+  state.hist.push({q, a, kind, comment:comment||"", ...(isCountedFree?{counted:true}:{})});
   save(); render();
   if(isCounted({kind})) { if(counted()>=LIMIT) reachLimit(); else if(HINT_AT.includes(counted())) updateHints(); }
 }
@@ -365,12 +366,26 @@ async function ask(raw){
   try{
     const r = await api("/api/ask", {token:state.token, q});
     $("q").value = "";
-    if(r.kind==="invalid"){ $("q").value = q; setStatus("はい／いいえで答えられる質問にしてください（回数には数えません）。", true); }
+    if(r.kind==="invalid" || r.kind==="unknown"){
+      // 数えない回答は1ゲーム5回まで。6回目からは1問として数える
+      state.free = (state.free||0) + 1;
+      const over = state.free > FREE_LIMIT;
+      const left = FREE_LIMIT - state.free;
+      const note = over ? "（数えない回答が5回を超えたため、1問として数えました）"
+        : left>0 ? `（回数には数えません。あと${left}回まで）` : "（回数には数えません。次からは1問として数えます）";
+      if(r.kind==="invalid"){
+        if(over){ record(q, "無効", "invalid", "", true); }
+        else { $("q").value = q; save(); }
+        setStatus("はい／いいえで答えられる質問にしてください"+note, true);
+      } else {
+        record(q, "わからない", "unknown", r.comment, over);
+        setStatus("「わからない」でした"+note);
+      }
+    }
     else if(r.kind==="hit"){ state.hist.push({q, a:"正解！", kind:"hit"}); state.song = r.song; state.done = "win"; save(); render(); setStatus(""); }
-    else if(r.kind==="unknown"){ record(q, "わからない", "unknown", r.comment); setStatus("「わからない」は質問数に数えません。"); }
     else { record(q, r.answer, r.kind, r.comment); setStatus(r.kind==="guess" ? "違う曲です。" : ""); }
   }catch(e){
-    const msg = {rate_limited:"アクセスが集中しています。少し待ってからもう一度送ってください。", daily_limited:"1日に質問できる回数の上限（200回）に達しました。時間をおいてからまた遊んでください。", ai_rate_limited:"自由入力の質問は1分間に7回までです。少し待ってから送ってください（質問例や曲名での回答はそのまま使えます）。", ai_unavailable:"今は自由入力の判定が使えません。質問例か曲名で遊べます。", bad_token:"ゲームの情報が壊れています。「GiveUp」か再読み込みで新しいゲームを始めてください。"}[e&&e.error];
+    const msg = {rate_limited:"アクセスが集中しています。少し待ってからもう一度送ってください。", daily_limited:"1日に質問できる回数の上限（200回）に達しました。時間をおいてからまた遊んでください。", ai_paused:"「わからない」や質問になっていない入力が続いたため、自由入力を少し止めています。"+(e&&e.wait?`あと約${Math.ceil(e.wait/60)}分で`:"しばらくすると")+"また使えます（質問例や曲名での回答はそのまま使えます）。", ai_rate_limited:"自由入力の質問は1分間に7回までです。少し待ってから送ってください（質問例や曲名での回答はそのまま使えます）。", ai_unavailable:"今は自由入力の判定が使えません。質問例か曲名で遊べます。", bad_token:"ゲームの情報が壊れています。「GiveUp」か再読み込みで新しいゲームを始めてください。"}[e&&e.error];
     setStatus(msg || "判定できませんでした。もう一度送ってください（回数には数えません）。", true);
   }finally{ busy=false; $("askBtn").disabled=false; }
 }

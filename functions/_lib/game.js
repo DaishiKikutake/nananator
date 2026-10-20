@@ -825,7 +825,25 @@ export function rateLimited(request, max=20, bucket="default", windowMs=60000){
   return false;
 }
 export const AI_PER_MINUTE = 7;      // AIに問い合わせる自由入力：1分間に7回まで
-export const DAILY_ASK_LIMIT = 200;  // 質問全体：IPごとに直近24時間で200回まで（目安）
+export const DAILY_ASK_LIMIT = 200;
+// 「わからない」「質問にしてください」が続いたら自由入力を一時停止する（IPごと・サーバーのメモリで数える目安）
+export const STREAK_LIMIT = 5, PAUSE_MS = 3*60*1000;
+const streaks = new Map();   // ip -> {n, until}
+const ipOf = request => request.headers.get("cf-connecting-ip") || "local";
+export function pausedFor(request){
+  const st = streaks.get(ipOf(request)); const now = Date.now();
+  return st && st.until > now ? Math.ceil((st.until-now)/1000) : 0;
+}
+// 自由入力の結果を記録。数えない回答（わからない・質問にしてください）ならtrue
+export function noteResult(request, wasted){
+  const ip = ipOf(request);
+  const st = streaks.get(ip) || {n:0, until:0};
+  if(!wasted){ st.n = 0; streaks.set(ip, st); return; }
+  st.n += 1;
+  if(st.n >= STREAK_LIMIT){ st.n = 0; st.until = Date.now() + PAUSE_MS; }
+  streaks.set(ip, st);
+  if(streaks.size > 5000) streaks.clear();
+}  // 質問全体：IPごとに直近24時間で200回まで（目安）
 
 // ---- モード ----
 // マスター：全曲から出題。スタンダード：ベスト盤『THE MUSEUM』シリーズ収録曲から出題、ヒントと最後の4択あり。
