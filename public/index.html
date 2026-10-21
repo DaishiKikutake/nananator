@@ -251,18 +251,24 @@ async function api(path, body){
 // Cloudflare Turnstile（人間確認）。ゲーム開始のたびに使い捨ての証明を受け取る
 // 普段は何も表示されず、怪しいと判断されたときだけチェックボックスが出る
 const TS_SITEKEY = "0x4AAAAAAFdk0nGdG8_LnrBK";
-let tsWidget = null, tsWait = null;
+let tsWidget = null;
 function tsReady(){ return new Promise((ok, ng)=>{ let n=0; const t=setInterval(()=>{ if(window.turnstile){ clearInterval(t); ok(); } else if(++n>100){ clearInterval(t); ng(new Error("ts_load")); } }, 100); }); }
+// ゲームごとにウィジェットを作り直して、新しい証明を受け取る（使い回すと2回目が返ってこないことがあるため）
+// チェックボックスが出た場合に押す時間を残しつつ、返ってこないときは60秒で打ち切る
 async function turnstileToken(){
   await tsReady();
+  if(tsWidget!==null){ try{ turnstile.remove(tsWidget); }catch(e){} tsWidget = null; }
   return new Promise((ok, ng)=>{
-    tsWait = {ok, ng};
-    const done = f => (v)=>{ const w=tsWait; tsWait=null; if(w) f===1 ? w.ok(v) : w.ng(new Error("ts_fail")); };
-    if(tsWidget===null){
-      tsWidget = turnstile.render("#ts", { sitekey:TS_SITEKEY, action:"new-game", appearance:"interaction-only", execution:"execute",
-        callback: v=>done(1)(v), "error-callback": ()=>{ done(0)(); return true; }, "timeout-callback": ()=>done(0)(), "expired-callback": ()=>{} });
-    } else { turnstile.reset(tsWidget); }
-    turnstile.execute(tsWidget);
+    let settled = false;
+    const finish = (f, v) => { if(settled) return; settled = true; clearTimeout(timer); f(v); };
+    const timer = setTimeout(()=>finish(ng, new Error("ts_timeout")), 60000);
+    try{
+      tsWidget = turnstile.render("#ts", { sitekey:TS_SITEKEY, action:"new-game", appearance:"interaction-only",
+        callback: v=>finish(ok, v),
+        "error-callback": ()=>{ finish(ng, new Error("ts_fail")); return true; },
+        "timeout-callback": ()=>finish(ng, new Error("ts_timeout")),
+        "unsupported-callback": ()=>finish(ng, new Error("ts_unsupported")) });
+    }catch(e){ finish(ng, e); }
   });
 }
 
