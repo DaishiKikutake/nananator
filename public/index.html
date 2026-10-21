@@ -129,6 +129,8 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
 .choices{display:grid;grid-template-columns:1fr;gap:8px}
 .choice{text-align:left;background:var(--surface-2);color:var(--ink);border:1.5px solid var(--line);font-size:16px;overflow-wrap:anywhere}
 .choice:hover:not(:disabled){border-color:var(--accent)}
+.starting{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 8px;text-align:center}
+.starting .status.err{color:var(--accent)}
 .ts{display:flex;justify-content:center;margin:6px 0}
 .ts:empty{margin:0}
 </style>
@@ -152,6 +154,12 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
     <button class="primary" id="modeYes" type="button">切り替える</button>
     <button class="ghost" id="modeNo" type="button">続ける</button>
   </div>
+  <!-- ゲーム開始中の表示と人間確認（Turnstile）。ゲーム終了画面でも見える位置に置く -->
+  <div class="starting" id="starting" hidden aria-live="polite">
+    <p class="status" id="startStatus"></p>
+    <div id="ts" class="ts"></div>
+    <button class="primary" id="startRetry" type="button" hidden>もう一度試す</button>
+  </div>
 
   <div class="meter" aria-live="polite">
     <span class="count" id="count">M00 <small>/ M15</small></span>
@@ -169,7 +177,6 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
       <button class="primary" id="askBtn" type="submit">質問する</button>
     </form>
     <div class="status" id="status" role="status"></div>
-    <div id="ts" class="ts"></div>
     <div class="row">
       <span class="status" id="mode">自由入力の質問はAIが判定します</span>
       <button class="ghost" id="giveBtn" type="button">GiveUp</button>
@@ -272,19 +279,28 @@ async function turnstileToken(){
   });
 }
 
+function setStart(msg, err, retry){
+  $("starting").hidden = !msg; $("startStatus").textContent = msg||"";
+  $("startStatus").classList.toggle("err", !!err); $("startRetry").hidden = !retry;
+}
+let starting = false;
 async function newGame(mode){
+  if(starting) return; starting = true;
   mode = mode || (state && state.mode) || savedMode();
   try{ localStorage.setItem("nananator_mode", mode); }catch(e){}
-  setStatus("準備中…");
+  setStart("新しいゲームを準備しています…");
+  const slow = setTimeout(()=>setStart("確認に時間がかかっています。チェックボックスが表示されたら押してください。"), 8000);
   try{
     let ts = "";
-    try{ ts = await turnstileToken(); }catch(e){ ts = ""; }   // 読み込めないときはサーバー側の判断に任せる
+    try{ ts = await turnstileToken(); }catch(e){ ts = ""; }   // 確認できなかったときはサーバー側の判断に任せる
     const {token} = await api("/api/new", {mode, ts});
     state = {token, mode, hist:[], done:null, song:null, hints:[], choices:null};
-    save(); render(); $("q").value=""; setStatus("");
+    save(); render(); $("q").value=""; setStatus(""); setStart("");
   }catch(e){
-    setStatus(e && e.error==="human_check" ? "人間であることの確認ができませんでした。表示されたチェックボックスを押すか、再読み込みしてもう一度お試しください。" : "ゲームを開始できませんでした。少し待ってから再読み込みしてください。", true);
-  }
+    setStart(e && e.error==="human_check"
+      ? "人間であることの確認ができませんでした。「もう一度試す」を押すか、ページを再読み込みしてください。"
+      : "ゲームを開始できませんでした。少し待ってから「もう一度試す」を押してください。", true, true);
+  }finally{ clearTimeout(slow); starting = false; }
 }
 const isCounted = h => h.counted || (h.kind!=="invalid" && h.kind!=="unknown");
 const counted = () => state.hist.filter(isCounted).length;
@@ -438,6 +454,7 @@ $("giveBtn").onclick = ()=>{ $("confirm").hidden=false; };
 $("giveNo").onclick = ()=>{ $("confirm").hidden=true; };
 $("giveYes").onclick = ()=>{ $("confirm").hidden=true; reveal("lose"); };
 $("againBtn").onclick = ()=>{ newGame(); loadVisitor(); window.scrollTo({top:0}); };
+$("startRetry").onclick = ()=>{ newGame(savedMode()); };   // 直前に始めようとしたモードで再挑戦
 const normT = s => String(s).normalize("NFKC").toLowerCase().replace(/[\s・☆★!！?？]/g,"");
 function renderSongs(){
   const m = state ? state.mode : savedMode();
