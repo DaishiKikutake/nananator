@@ -89,6 +89,9 @@ summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)}
 .histbox{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:10px}
 .histhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .histbox details{border-top:0;padding-top:0}
+.secbox{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:10px}
+.secbox details{border-top:0;padding-top:0}
+.secnote{color:var(--muted);font-size:12px}
 .histbox details[open] summary{margin-bottom:4px}
 .result{border:2px solid var(--gold);background:var(--surface)}
 .result.lose{border-color:var(--line)}
@@ -194,13 +197,16 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
       <button class="ghost" id="giveNo" type="button">続ける</button>
     </div>
     <div id="histSlotPlay"></div>
-    <details>
-      <summary>曲名リストから回答する（<span id="songN"></span>曲）</summary>
-      <input class="songfilter" id="filter" type="search" placeholder="曲名で絞り込み">
-      <div class="songlist" id="songlist"></div>
-    </details>
-    <div>
-      <div class="q" style="font-size:12px;color:var(--muted);margin-bottom:6px">質問例（タップで質問）</div>
+    <div class="setlist secbox">
+      <div class="histhead"><h2>SONG LIST</h2></div>
+      <details>
+        <summary>曲名リストから回答する（<span id="songN"></span>曲）</summary>
+        <input class="songfilter" id="filter" type="search" placeholder="曲名で絞り込み">
+        <div class="songlist" id="songlist"></div>
+      </details>
+    </div>
+    <div class="setlist secbox">
+      <div class="histhead"><h2>QUESTIONS</h2><small class="secnote">質問例（タップで質問）</small></div>
       <div class="chips" id="chips"></div>
     </div>
   </section>
