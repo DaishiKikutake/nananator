@@ -329,7 +329,7 @@ function renderMode(){
   document.querySelectorAll(".modebtn").forEach(b=>{ const on=b.dataset.mode===m; b.classList.toggle("on",on); b.setAttribute("aria-pressed", on); });
   $("lead").textContent = MODES[m].lead;
   $("chips").innerHTML = "";
-  PRESET_Q.filter(q=>!(m==="standard" && /THE MUSEUM/.test(q)) && !(m==="coupling" && /シングル曲|表題曲|カップリング曲|アルバムで初めて/.test(q))).forEach(q=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=q; b.onclick=()=>{ $("q").value=q; $("q").focus(); }; $("chips").append(b); });
+  PRESET_Q.filter(q=>!(m==="standard" && /THE MUSEUM/.test(q)) && !(m==="coupling" && /シングル曲|表題曲|カップリング曲|アルバムで初めて/.test(q))).forEach(q=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=q; b.onclick=()=>{ if(state && !state.done && !state.choices && !busy){ ask(q); } else { $("q").value=q; $("q").focus(); } }; $("chips").append(b); });
   renderSongs();
 }
 function renderHints(){
