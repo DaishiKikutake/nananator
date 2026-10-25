@@ -1,4 +1,4 @@
-import { poolFor, makeToken, json, rateLimited } from "../_lib/game.js";
+import { poolFor, makeToken, json, rateLimited, normMode } from "../_lib/game.js";
 
 // Cloudflare Turnstile（人間確認）の証明をCloudflareに問い合わせて確かめる
 async function humanOk(request, env, ts){
@@ -21,7 +21,7 @@ export async function onRequestPost({ request, env }){
   if(rateLimited(request, 30, "new")) return json({error:"rate_limited"}, 429);
   const body = await request.json().catch(()=>({}));
   if(!(await humanOk(request, env, body.ts))) return json({error:"human_check"}, 403);
-  const mode = body.mode === "standard" ? "standard" : "master";
+  const mode = normMode(body.mode);
   const pool = poolFor(mode);
   const song = pool[Math.floor(Math.random() * pool.length)];
   return json({ token: await makeToken(song.id, env.GAME_SECRET, mode), mode });

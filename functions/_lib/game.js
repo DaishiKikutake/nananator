@@ -810,7 +810,7 @@ export async function readGame(token, secret){
     const pt = await crypto.subtle.decrypt({name:"AES-GCM", iv:unb64u(iv)}, await keyFrom(secret), unb64u(ct));
     const {id, mode} = JSON.parse(dec.decode(pt));
     const song = SONGS[id];
-    return song ? {song, mode: mode==="standard" ? "standard" : "master"} : null;
+    return song ? {song, mode: normMode(mode)} : null;
   }catch(e){ return null; }
 }
 export async function readToken(token, secret){
@@ -874,7 +874,12 @@ export function noteResult(request, wasted){
 // ---- モード ----
 // マスター：全曲から出題。スタンダード：ベスト盤『THE MUSEUM』シリーズ収録曲から出題、ヒントと最後の4択あり。
 export const STANDARD_POOL = SONGS.filter(s=>s.tracks.some(t=>isBest(t.album)));
-export const poolFor = mode => mode==="standard" ? STANDARD_POOL : SONGS;
+// カップリング：水樹奈々名義のシングルの2曲目以降（77曲）。両A面シングルとEPは全曲表題曲扱いなので含めない（エデンの2〜4曲目は含める）
+export const COUPLING_POOL = SONGS.filter(s=>s.kind==="C" && !/EP$/.test(s.release) && !s.release.includes("/"));
+export const MODES = ["standard","master","coupling"];
+export const normMode = m => MODES.includes(m) ? m : "master";
+export const hasHints = m => m==="standard" || m==="coupling";   // ヒントと最後の4択があるモード
+export const poolFor = mode => mode==="standard" ? STANDARD_POOL : mode==="coupling" ? COUPLING_POOL : SONGS;
 
 // スタンダードモードの自動ヒント（数えた質問数が at に達したら表示）
 export const HINT_AT = [5, 10, 12, 14];

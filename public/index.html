@@ -110,7 +110,8 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
 
 .visitor{margin:0;align-self:flex-start;font-size:13px;font-weight:700;color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 14px}
 .visitor b{font-family:var(--mono);font-size:15px;font-variant-numeric:tabular-nums}
-.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:420px){.modebtn{padding:8px 9px}.modebtn b{font-size:14px}.modebtn small{font-size:10.5px}}
 .modebtn{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--surface);color:var(--ink);border:1.5px solid var(--line);font-weight:500;padding:10px 12px;min-width:0}
 .modebtn b{font-size:15px}
 .modebtn small{font-size:11.5px;color:var(--muted);line-height:1.4}
@@ -148,6 +149,7 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
   <div class="modes" role="group" aria-label="モード">
     <button type="button" class="modebtn" data-mode="standard"><b>スタンダード</b><small>代表曲63曲・ヒントあり・最後は4択</small></button>
     <button type="button" class="modebtn" data-mode="master"><b>マスター</b><small>全312曲・ヒントなし</small></button>
+    <button type="button" class="modebtn" data-mode="coupling"><b>カップリング</b><small>カップリング曲77曲・ヒントあり・最後は4択</small></button>
   </div>
   <div class="confirm" id="modeConfirm" hidden>
     <span id="modeConfirmText"></span>
@@ -240,15 +242,17 @@ const FREE_LIMIT = 5;   // 「わからない」「質問にしてください�
 const MODES = {
   standard: { name:"スタンダード", lead:"ベスト盤『THE MUSEUM』シリーズに収録された代表曲から1曲が選ばれました。はい／いいえで答えられる質問をして曲名を当ててください。5問ごとにヒントが出て、15問で当てられなくても最後に4択のチャンスがあります。" },
   master:   { name:"マスター", lead:"水樹奈々さんの全楽曲から1曲が選ばれました。はい／いいえで答えられる質問をして、15問以内に曲名を当ててください。ヒントはありません。" },
+  coupling: { name:"カップリング", lead:"水樹奈々さんのシングルに収録されたカップリング曲から1曲が選ばれました。はい／いいえで答えられる質問をして曲名を当ててください。5問ごとにヒントが出て、15問で当てられなくても最後に4択のチャンスがあります。" },
 };
 const HINT_AT = [5, 10, 12, 14];
+const hasHints = m => m==="standard" || m==="coupling";   // ヒントと最後の4択があるモード
 const $ = id => document.getElementById(id);
 let state = null, busy = false, pendingMode = null;
-let ALL_TITLES = [], STD_TITLES = [], PRESET_Q = [];
+let ALL_TITLES = [], STD_TITLES = [], CPL_TITLES = [], PRESET_Q = [];
 
 function save(){ try{ localStorage.setItem("nananator_v3", JSON.stringify(state)); }catch(e){} }
 function load(){ try{ const s=JSON.parse(localStorage.getItem("nananator_v3")); if(s&&s.token) return s; }catch(e){} return null; }
-function savedMode(){ try{ return localStorage.getItem("nananator_mode")==="master" ? "master" : "standard"; }catch(e){ return "standard"; } }
+function savedMode(){ try{ const m=localStorage.getItem("nananator_mode"); return MODES[m] ? m : "standard"; }catch(e){ return "standard"; } }
 async function api(path, body){
   const res = await fetch(path, {method:"POST", headers:{"content-type":"application/json"}, body:JSON.stringify(body||{})});
   const data = await res.json().catch(()=>({error:"upstream"}));
@@ -324,11 +328,11 @@ function renderMode(){
   document.querySelectorAll(".modebtn").forEach(b=>{ const on=b.dataset.mode===m; b.classList.toggle("on",on); b.setAttribute("aria-pressed", on); });
   $("lead").textContent = MODES[m].lead;
   $("chips").innerHTML = "";
-  PRESET_Q.filter(q=>!(m==="standard" && /THE MUSEUM/.test(q))).forEach(q=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=q; b.onclick=()=>{ $("q").value=q; $("q").focus(); }; $("chips").append(b); });
+  PRESET_Q.filter(q=>!(m==="standard" && /THE MUSEUM/.test(q)) && !(m==="coupling" && /シングル曲|表題曲|カップリング曲|アルバムで初めて/.test(q))).forEach(q=>{ const b=document.createElement("button"); b.type="button"; b.className="chip"; b.textContent=q; b.onclick=()=>{ $("q").value=q; $("q").focus(); }; $("chips").append(b); });
   renderSongs();
 }
 function renderHints(){
-  const box = $("hints"); const std = state.mode==="standard";
+  const box = $("hints"); const std = hasHints(state.mode);
   const over = !!state.done && !!state.song;
   box.hidden = !std || over; if(box.hidden) return;
   const list = $("hintList"); list.innerHTML="";
@@ -342,7 +346,7 @@ function render(){
   const n = counted();
   $("count").innerHTML = `${pad(n)} <small>/ M${LIMIT}</small>`;
   const ticks = $("ticks"); ticks.innerHTML="";
-  for(let i=0;i<LIMIT;i++){ const t=document.createElement("i"); if(i<n) t.className = (i===LIMIT-1?"on last":"on"); if(state.mode==="standard"&&HINT_AT.includes(i+1)) t.classList.add("hint"); ticks.append(t); }
+  for(let i=0;i<LIMIT;i++){ const t=document.createElement("i"); if(i<n) t.className = (i===LIMIT-1?"on last":"on"); if(hasHints(state.mode)&&HINT_AT.includes(i+1)) t.classList.add("hint"); ticks.append(t); }
   const list = $("hist"); list.innerHTML="";
   const items = numbered();
   items.slice().reverse().forEach(x=>list.append(rowEl(x.h, x.n)));
@@ -387,11 +391,11 @@ async function reveal(kind){
   catch(e){ setStatus("答えを取得できませんでした。もう一度押してください。", true); }
 }
 async function updateHints(){
-  if(state.mode!=="standard") return;
+  if(!hasHints(state.mode)) return;
   try{ const {hints} = await api("/api/hint", {token:state.token, n:counted()}); state.hints = hints||[]; save(); render(); }catch(e){}
 }
 async function reachLimit(){
-  if(state.mode!=="standard") return reveal("limit");
+  if(!hasHints(state.mode)) return reveal("limit");
   try{ const {choices} = await api("/api/choices", {token:state.token}); state.choices = choices; save(); render(); window.scrollTo({top:0}); }
   catch(e){ reveal("limit"); }
 }
@@ -458,7 +462,7 @@ $("startRetry").onclick = ()=>{ newGame(savedMode()); };   // 直前に始めよ
 const normT = s => String(s).normalize("NFKC").toLowerCase().replace(/[\s・☆★!！?？]/g,"");
 function renderSongs(){
   const m = state ? state.mode : savedMode();
-  const titles = m==="standard" ? STD_TITLES : ALL_TITLES;
+  const titles = m==="standard" ? STD_TITLES : m==="coupling" ? CPL_TITLES : ALL_TITLES;
   $("songN").textContent = titles.length;
   const f = normT($("filter").value), box=$("songlist"); box.innerHTML="";
   titles.slice().sort((a,b)=>a.localeCompare(b,"ja")).forEach(t=>{
@@ -469,7 +473,7 @@ function renderSongs(){
   });
 }
 $("filter").addEventListener("input", renderSongs);
-fetch("/api/titles").then(r=>r.json()).then(d=>{ ALL_TITLES=d.titles||[]; STD_TITLES=d.standard||[]; PRESET_Q=d.presets||[]; renderMode(); }).catch(()=>{});
+fetch("/api/titles").then(r=>r.json()).then(d=>{ ALL_TITLES=d.titles||[]; STD_TITLES=d.standard||[]; CPL_TITLES=d.coupling||[]; PRESET_Q=d.presets||[]; renderMode(); }).catch(()=>{});
 
 // 挑戦者数（同じブラウザのリロードでは数えない）
 function showVisitor(n){ const el=$("visitor"); el.innerHTML=`あなたは <b>${Number(n).toLocaleString("ja-JP")}</b> 人めの挑戦者です！`; el.hidden=false; }
