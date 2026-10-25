@@ -33,7 +33,7 @@ deep sea||2002-11-06|L|MAGIC ATTRACTION||MAGIC ATTRACTION||津田和恵|大平�
 ジュリエット||2002-11-06|L|MAGIC ATTRACTION||MAGIC ATTRACTION||志倉千代丸|志倉千代丸||MAGIC ATTRACTION:11
 climb up||2002-11-06|L|MAGIC ATTRACTION||MAGIC ATTRACTION||矢吹俊郎|矢吹俊郎||MAGIC ATTRACTION:12
 あの日夢見た願い|あのひゆめみたねがい|2002-11-06|L|MAGIC ATTRACTION||MAGIC ATTRACTION||津田和恵|大平勉||MAGIC ATTRACTION:15
-リプレイマシン|リプレイマシン -custom-|2003-04-23|C|New Sensation|PS2ゲーム『想い出にかわる君 〜Memories Off〜』オープニングテーマ（シングルは新録音の-custom-）||シングルは新録音の-custom-|志倉千代丸|志倉千代丸||
+リプレイマシン-custom-|リプレイマシン;リプレイマシン -custom-|2003-04-23|C|New Sensation|PS2ゲーム『想い出にかわる君 〜Memories Off〜』オープニングテーマ（シングルは新録音の-custom-）||シングルは新録音の-custom-|志倉千代丸|志倉千代丸||
 New Sensation||2003-04-23|A|New Sensation|菅公学生服（カンコー学生服）CMソング|DREAM SKIPPER||矢吹俊郎|矢吹俊郎|矢吹俊郎|DREAM SKIPPER:14;THE MUSEUM:7
 HONEY FLOWER||2003-04-23|C|New Sensation||||佐藤麗・古澤尚子|本間昭光|大平勉・本間昭光|
 still in the groove||2003-07-16|A|still in the groove|「いろメロミックス」CMソング|DREAM SKIPPER||矢吹俊郎|矢吹俊郎|矢吹俊郎|DREAM SKIPPER:4;THE MUSEUM:8
@@ -52,7 +52,7 @@ White Lie||2003-11-27|L|DREAM SKIPPER||DREAM SKIPPER||NAOKO|本間昭光||DREAM 
 in a fix||2003-11-27|L|DREAM SKIPPER||DREAM SKIPPER||矢吹俊郎|矢吹俊郎||DREAM SKIPPER:13
 パノラマ -Panorama-|パノラマ;Panorama|2004-04-07|A|パノラマ -Panorama-|PS2ゲーム『ロスト・アヤ・ソフィア』オープニングテーマ|ALIVE & KICKING||水樹奈々|本間昭光|大平勉・本間昭光|ALIVE & KICKING:9;THE MUSEUM:9
 Heartbeat||2004-04-07|C|パノラマ -Panorama-||||水樹奈々|飯田高広|飯田高広・大平勉|
-それでも君を想い出すから|それでも君を想い出すから-again-|2004-10-06|C|innocent starter|PS2ゲーム『Memories Off 〜それから〜』オープニングテーマ||シングルは新録音の-again-|志倉千代丸|志倉千代丸|大平勉|
+それでも君を想い出すから-again-|それでも君を想い出すから|2004-10-06|C|innocent starter|PS2ゲーム『Memories Off 〜それから〜』オープニングテーマ||シングルは新録音の-again-|志倉千代丸|志倉千代丸|大平勉|
 innocent starter|イノセントスターター|2004-10-06|A|innocent starter|テレビアニメ『魔法少女リリカルなのは』オープニングテーマ|ALIVE & KICKING||水樹奈々|大平勉|大平勉|ALIVE & KICKING:2;THE MUSEUM:10;THE MUSEUM IV:15
 Open Your Heart||2004-10-06|C|innocent starter||||水樹奈々|飯田高広|飯田高広|
 ミラクル☆フライト|ミラクルフライト|2004-12-08|L|ALIVE & KICKING||ALIVE & KICKING||矢吹俊郎|矢吹俊郎|矢吹俊郎|ALIVE & KICKING:1
