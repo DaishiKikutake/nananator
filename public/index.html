@@ -45,7 +45,7 @@ header{display:flex;flex-direction:column;gap:6px}
 .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
 h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,9vw,52px);line-height:1.1;margin:0;letter-spacing:.02em;text-wrap:balance}
 h1 .wave{color:var(--accent)}
-.lead{margin:0;color:var(--muted)}
+.lead{white-space:pre-line;margin:0;color:var(--muted)}
 .meter{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
 .count{font-family:var(--mono);font-weight:700;font-size:20px;font-variant-numeric:tabular-nums}
 .count small{color:var(--muted);font-weight:500;font-size:13px}
@@ -243,7 +243,7 @@ const FREE_LIMIT = 5;   // 「わからない」「質問にしてください�
 const MODES = {
   standard: { name:"スタンダード", lead:"ベスト盤『THE MUSEUM』シリーズに収録された代表曲から1曲が選ばれました。はい／いいえで答えられる質問をして曲名を当ててください。5問ごとにヒントが出て、15問で当てられなくても最後に4択のチャンスがあります。" },
   master:   { name:"マスター", lead:"水樹奈々さんの全楽曲から1曲が選ばれました。はい／いいえで答えられる質問をして、15問以内に曲名を当ててください。ヒントはありません。" },
-  coupling: { name:"カップリング", lead:"水樹奈々さんのシングルのカップリング曲（2曲目以降の曲）全77曲から1曲が選ばれました。両A面シングルとEPは全曲が表題曲扱いのため対象外、シングル『エデン』は表題曲以外の3曲（No Limit・終末のラブソング・Necessary）が対象です。はい／いいえで答えられる質問をして曲名を当ててください。5問ごとにヒントが出て、15問で当てられなくても最後に4択のチャンスがあります。" },
+  coupling: { name:"カップリング", lead:"水樹奈々さんのシングルのカップリング曲から1曲が選ばれました。\n両A面シングルとEPは対象外、『エデン』は表題曲以外の3曲を含む、合計77曲が対象となります。\nはい／いいえの質問で曲名を当ててください。5問ごとにヒントが出て、15問で当てられなくても最後に4択があります。" },
 };
 const HINT_AT = [5, 10, 12, 14];
 const hasHints = m => m==="standard" || m==="coupling";   // ヒントと最後の4択があるモード
