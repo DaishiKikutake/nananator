@@ -86,6 +86,10 @@ summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)}
 .b-unk{background:var(--unk-soft);color:var(--unk)}
 .b-hit{background:var(--gold-soft);color:var(--gold)}
 .empty{color:var(--muted);font-size:13px;margin:0}
+.histbox{display:flex;flex-direction:column;gap:6px;border-top:1px dashed var(--line);padding-top:10px}
+.histhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.histbox details{border-top:0;padding-top:0}
+.histbox details[open] summary{margin-bottom:4px}
 .result{border:2px solid var(--gold);background:var(--surface)}
 .result.lose{border-color:var(--line)}
 .verdict{font-family:var(--display);font-weight:400;font-size:clamp(30px,8vw,44px);line-height:1.15;margin:0;color:var(--gold)}
@@ -189,21 +193,23 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
       <button class="primary" id="giveYes" type="button">GiveUpする</button>
       <button class="ghost" id="giveNo" type="button">続ける</button>
     </div>
-    <div>
-      <div class="q" style="font-size:12px;color:var(--muted);margin-bottom:6px">質問例（タップで入力）</div>
-      <div class="chips" id="chips"></div>
-    </div>
+    <div id="histSlotPlay"></div>
     <details>
       <summary>曲名リストから回答する（<span id="songN"></span>曲）</summary>
       <input class="songfilter" id="filter" type="search" placeholder="曲名で絞り込み">
       <div class="songlist" id="songlist"></div>
     </details>
+    <div>
+      <div class="q" style="font-size:12px;color:var(--muted);margin-bottom:6px">質問例（タップで質問）</div>
+      <div class="chips" id="chips"></div>
+    </div>
   </section>
 
   <section class="panel final" id="final" hidden aria-live="polite">
     <p class="verdict">ラストチャンス！</p>
     <p class="lead">15問で当てられませんでした。この中に正解があります。1回だけ選べます。</p>
     <div class="choices" id="choiceList"></div>
+    <div id="histSlotFinal"></div>
   </section>
 
   <section class="panel result" id="result" hidden aria-live="polite">
@@ -224,11 +230,16 @@ a.share{display:inline-flex;align-items:center;text-decoration:none;border-radiu
     </div>
   </section>
 
-  <section class="panel setlist" id="histPanel">
-    <h2>SETLIST</h2>
-    <ul class="sl" id="hist"></ul>
+  <!-- 質問の履歴。遊んでいる間は質問欄の中、4択のときは4択の上に移して表示する -->
+  <div class="setlist histbox" id="histBox">
+    <div class="histhead"><h2>質問の履歴</h2><span class="eyebrow">SETLIST</span></div>
+    <ul class="sl" id="histLatest"></ul>
     <p class="empty" id="histEmpty">まだ質問していません。最初の質問をどうぞ。</p>
-  </section>
+    <details id="histMore" hidden>
+      <summary>すべての質問を見る（<span id="histN"></span>件）</summary>
+      <ul class="sl" id="hist"></ul>
+    </details>
+  </div>
 
   <footer>
     <span>非公式のファンメイドゲームです。楽曲データとクレジットは公式サイトのディスコグラフィ、Wikipedia、歌ネットをもとに作成しています（2026年10月時点）。キャラクターソング、インスト曲、未音源化曲、グループ名義の曲は対象外です。</span>
@@ -348,14 +359,23 @@ function render(){
   $("count").innerHTML = `${pad(n)} <small>/ M${LIMIT}</small>`;
   const ticks = $("ticks"); ticks.innerHTML="";
   for(let i=0;i<LIMIT;i++){ const t=document.createElement("i"); if(i<n) t.className = (i===LIMIT-1?"on last":"on"); if(hasHints(state.mode)&&HINT_AT.includes(i+1)) t.classList.add("hint"); ticks.append(t); }
+  // 質問の履歴：最新の1件だけ表示し、ほかは「すべての質問を見る」に折りたたむ
+  const items = numbered().slice().reverse();
+  const latest = $("histLatest"); latest.innerHTML="";
+  if(items.length) latest.append(rowEl(items[0].h, items[0].n));
   const list = $("hist"); list.innerHTML="";
-  const items = numbered();
-  items.slice().reverse().forEach(x=>list.append(rowEl(x.h, x.n)));
+  items.forEach(x=>list.append(rowEl(x.h, x.n)));
+  $("histN").textContent = items.length;
+  $("histMore").hidden = items.length<2;
   $("histEmpty").hidden = items.length>0;
   renderHints();
   const over = !!state.done && !!state.song;
   const inFinal = !over && !!state.choices;
   $("play").hidden = over || inFinal;
+  // 履歴の置き場所：遊んでいる間は質問欄の中、4択のときは4択の下、終了後は結果画面の「直近の質問」を使う
+  const hb = $("histBox");
+  if(inFinal) $("histSlotFinal").append(hb); else $("histSlotPlay").append(hb);
+  hb.hidden = over;
   $("final").hidden = !inFinal;
   if(inFinal) renderFinal();
   $("result").hidden = !over;
